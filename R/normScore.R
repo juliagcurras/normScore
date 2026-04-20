@@ -67,7 +67,7 @@
 #'   metric.
 #' }
 #'
-#' Each item is scaled to the range [0, 1] using min-max scaling and then summed
+#' Each item is scaled to the range 0 to 1 using min-max scaling and then summed
 #' into a total score. Lower scores indicate better normalization performance.
 #'
 #' A correction factor based on the coefficient of variation of total raw sample
@@ -79,38 +79,36 @@
 #'
 #' When `onlyFinalRanking = FALSE`, bootstrap resampling of the six item scores
 #' is performed using \code{\link{computeBootstrapNormScore}}, and the results
-#' are visualized with \code{\link{plotBoostrapNormScore}}.
+#' are visualized with \code{\link{plotBootstrapNormScore}}.
 #'
 #' @examples
 #' # Minimal example structure
-#' rawData <- data.frame(
-#'   S1 = c(100, 200, 300, 400),
-#'   S2 = c(110, 190, 320, 390),
-#'   S3 = c(120, 210, 310, 405),
-#'   S4 = c(115, 205, 315, 398)
-#' )
-#'
-#' norm1 <- log(rawData, base = 2)
-#' norm2 <- log(rawData, base = 2) / 2
-#'
+#' 
+#' # Simulate proteomic data
+#' simData <- simulateData(nProteins = 1000)
+#' 
+#' # Normalyze ysing NormalyzerDE package
 #' normalizedDataList <- list(
-#'   Log = norm1,
-#'   RandomNorm = norm2
+#'   Median = NormalyzerDE::medianNormalization(simData$rawData),
+#'   Mean = NormalyzerDE::meanNormalization(simData$rawData),
+#'   TI = NormalyzerDE::globalIntensityNormalization(simData$rawData),
+#'   Quantile =  NormalyzerDE::performQuantileNormalization(simData$rawData),
+#'   CyclicLoess = NormalyzerDE::performCyclicLoessNormalization(simData$rawData),
+#'   VSN =  NormalyzerDE::performVSNNormalization(simData$rawData),
+#'RLR =  NormalyzerDE::performGlobalRLRNormalization(simData$rawData)
 #' )
-#'
-#' groupData <- data.frame(
-#'   Samples = c("S1", "S2", "S3", "S4"),
-#'   Groups = c("A", "A", "B", "B")
-#' )
-#'
-#' res <- normScore(
-#'   normalizedDataList = normalizedDataList,
-#'   groupData = groupData,
-#'   rawData = rawData,
-#'   onlyFinalRanking = TRUE
-#' )
-#'
-#' res$finalRanking
+#' 
+#' # Compute ranking
+#' normScore(
+#'   normalizedDataList,
+#'   groupData = simData$metadata,
+#'   rawData = simData$rawData,
+#'   refGroup = NULL,
+#'   altGroup = NULL,
+#'   onlyFinalRanking = FALSE,
+#'   nBoot = 100
+#'  ) 
+#' 
 #'
 #' @seealso
 #' \code{\link{getPCV}},
@@ -120,7 +118,7 @@
 #' \code{\link{rleMAPE}},
 #' \code{\link{tiMAPE}},
 #' \code{\link{computeBootstrapNormScore}},
-#' \code{\link{plotBoostrapNormScore}}
+#' \code{\link{plotBootstrapNormScore}}
 #'
 #' @export
 
@@ -148,6 +146,16 @@ normScore <- function(
   
   groupLevels <- levels(as.factor(groupData$Groups))
   scoreList <- list()
+  
+  if(nrow(rawData) < 100){
+    stop("A minimum of 100 proteins is required for normalization assessment")
+  }
+  
+  normalizedDataList <- addLogIfMissing(
+    normalizedDataList = normalizedDataList,
+    rawData = rawData
+  )
+  
   
   #----- ITEM 0 - correction factor ####
   totalIntensities <- colSums(rawData, na.rm = TRUE)
@@ -191,7 +199,7 @@ normScore <- function(
       correlationValues <- dfCor[, normalizationName]
       
       # Use 1 - statistic so that lower values consistently indicate better performance
-      1 - (median(correlationValues, na.rm = TRUE) - stats::IQR(correlationValues, na.rm = TRUE) / 3)
+      1 - (stats::median(correlationValues, na.rm = TRUE) - stats::IQR(correlationValues, na.rm = TRUE) / 3)
     },
     simplify = TRUE,
     USE.NAMES = TRUE
@@ -248,8 +256,9 @@ normScore <- function(
   
   #----- Corrections ####
   # Low discrimination power for item 2 (Correlation)
-  scaledScoreDF[rownames(scaledScoreDF) != "CyclicLoess", 2] <-
-    scaledScoreDF[rownames(scaledScoreDF) != "CyclicLoess", 2] * 0.1
+  # scaledScoreDF[rownames(scaledScoreDF) != "CyclicLoess", 2] <-
+  #   scaledScoreDF[rownames(scaledScoreDF) != "CyclicLoess", 2] * 0.1
+  scaledScoreDF[, 2] <- scaledScoreDF[, 2] * 0.1
   
   #----- Final ranking ####
   scaledScoreDF$Total <- rowSums(scaledScoreDF)
@@ -258,8 +267,7 @@ normScore <- function(
   scaledScoreDF[rownames(scaledScoreDF) == "Log", "TotalxItem0"] <-
     scaledScoreDF[rownames(scaledScoreDF) == "Log", "TotalxItem0"] * item0
   
-  scaledScoreDF <- scaledScoreDF %>%
-    dplyr::arrange(TotalxItem0)
+  scaledScoreDF <- scaledScoreDF[order(scaledScoreDF$TotalxItem0), ]
   
   finalRanking <- stats::setNames(scaledScoreDF$TotalxItem0, rownames(scaledScoreDF))
   names(scaledScoreDF) <- c(paste0("Item", 1:6), "Total", "TotalxItem0")
@@ -283,7 +291,7 @@ normScore <- function(
       nBoot = nBoot
     )
     
-    bootstrapPlot <- plotBoostrapNormScore(
+    bootstrapPlot <- plotBootstrapNormScore(
       bootstrapScores = bootstrapScores
     )
     

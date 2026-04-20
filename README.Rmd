@@ -25,24 +25,29 @@ usethis::use_testthat()
 usethis::use_news_md()
 usethis::use_vignette("normScore-intro")
 
-# Creating 
+
+# Creating
 usethis::use_r("utils")
 usethis::use_r("normScore")
 usethis::use_r("simulateData")
 
 
-# Building 
+# Building
 roxygen2::roxygenise() # man folder
 
 
-# Checking 
+# Checking
 devtools::document()
+# devtools::build_manual() # requires latex 
 devtools::check()
 # BiocCheck::BiocCheck() # execution at Devel from BiorManager()
 
 
-# Installing 
+# Installing
 devtools::install()
+
+
+# New release
 ```
 
 

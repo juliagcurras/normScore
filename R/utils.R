@@ -8,6 +8,102 @@
 
 
 
+#' Compare Two Normalized Datasets
+#'
+#' @description
+#' Checks whether two normalized datasets are equivalent, allowing for small
+#' numerical differences.
+#'
+#' @param x First normalized data matrix or data frame.
+#' @param y Second normalized data matrix or data frame.
+#' @param tolerance `numeric`. Numerical tolerance used for comparison.
+#'   Default is `1e-8`.
+#'
+#' @return
+#' A `logical` value indicating whether `x` and `y` are considered equivalent.
+#'
+#' @keywords internal
+
+isSameNormalization <- function(x, y, tolerance = 1e-8) {
+  x <- as.matrix(x)
+  y <- as.matrix(y)
+  
+  if (!identical(dim(x), dim(y))) {
+    return(FALSE)
+  }
+  
+  if (!identical(rownames(x), rownames(y))) {
+    return(FALSE)
+  }
+  
+  if (!identical(colnames(x), colnames(y))) {
+    return(FALSE)
+  }
+  
+  isTRUE(all.equal(x, y, tolerance = tolerance, check.attributes = FALSE))
+}
+
+
+
+
+#' Ensure Presence of Log2-Transformed Data in a Normalization List
+#'
+#' @description
+#' Checks whether a log2-transformed version of the raw data is already present
+#' in a list of normalized datasets. If not found, it is added. If found under a
+#' different name, it is renamed to `"Log"`.
+#'
+#' @param normalizedDataList Named list of normalized data matrices or data
+#'   frames. Each element represents a normalization method.
+#' @param rawData `data.frame` or matrix of raw numeric values from which the
+#'   log2 transformation will be computed.
+#' @param tolerance `numeric`. Numerical tolerance used when comparing datasets.
+#'   Default is `1e-8`.
+#'
+#' @return
+#' A named list of normalized datasets, guaranteed to contain a log2-transformed
+#' version of `rawData` under the name `"Log"`. If multiple matching datasets are
+#' found, only the first one is kept.
+#'
+#'
+#' @seealso
+#' \code{\link{isSameNormalization}}
+#'
+#' @export
+#' @keywords internal
+
+addLogIfMissing <- function(normalizedDataList, rawData, tolerance = 1e-8) {
+  if (any(rawData <= 0, na.rm = TRUE)) {
+    stop(
+      "'rawData' contains values <= 0, so log2 transformation cannot be computed safely.",
+      call. = FALSE
+    )
+  }
+  
+  logData <- log(rawData, base = 2)
+  
+  matchingIndex <- which(vapply(
+    normalizedDataList,
+    function(x) isSameNormalization(x, logData, tolerance = tolerance),
+    logical(1)
+  ))
+  
+  if (length(matchingIndex) == 0) {
+    normalizedDataList[["Log"]] <- logData
+    message("Log2-transformed raw data were added to 'normalizedDataList' as 'Log'.")
+  } else {
+    names(normalizedDataList)[matchingIndex[1]] <- "Log"
+    
+    if (length(matchingIndex) > 1) {
+      normalizedDataList <- normalizedDataList[-matchingIndex[-1]]
+      message("Multiple log2-equivalent normalizations were found. The first one was kept and renamed to 'Log'.")
+    }
+  }
+  
+  return(normalizedDataList)
+}
+
+
 #' Coefficient of Variation
 #'
 #' @description
@@ -48,8 +144,8 @@
 #' @export
 #' @keywords internal
 
-cv <- function(x, proportion = T, na.rm = TRUE) {
-  coeficiente <- (sd(x, na.rm = na.rm) / mean(x, na.rm = na.rm))
+cv <- function(x, proportion =TRUE, na.rm = TRUE) {
+  coeficiente <- (stats::sd(x, na.rm = na.rm) / mean(x, na.rm = na.rm))
   if (!proportion){
     coeficiente <- coeficiente*100
   }
@@ -140,9 +236,9 @@ mse <- function(actual, predicted){
 #' @export
 #' @keywords internal
 
-mape <- function(actual, predicted, prop = F){
+mape <- function(actual, predicted, proportion = FALSE){
   metric <- mean(abs((actual - predicted)/actual))
-  metric <- ifelse(!prop, metric*100, metric)
+  metric <- ifelse(!proportion, metric*100, metric)
   return(metric)
 } 
 
@@ -436,9 +532,9 @@ tiMAPE <- function(data) {
   q3 <- sapply(sampleQuantiles, "[[", 4)
   
   finalMetric <- 
-    mape(actual = median(sampleMedians), predicted = sampleMedians, proportion = TRUE) +
-    mape(actual = median(q1), predicted = q1, proportion = TRUE) +
-    mape(actual = median(q3), predicted = q3, proportion = TRUE)
+    mape(actual = stats::median(sampleMedians), predicted = sampleMedians, proportion = TRUE) +
+    mape(actual = stats::median(q1), predicted = q1, proportion = TRUE) +
+    mape(actual = stats::median(q3), predicted = q3, proportion = TRUE)
   
   return(finalMetric)
 } 
@@ -499,8 +595,8 @@ tiMAPE <- function(data) {
 #' @keywords internal
 
 meanSDdiffArea <- function(data) {
-  sampleMeans <- apply(data, 2, mean, na.rm = TRUE)
-  sampleSDs <- apply(data, 2, sd, na.rm = TRUE)
+  sampleMeans <- apply(data, 2, base::mean, na.rm = TRUE)
+  sampleSDs <- apply(data, 2, stats::sd, na.rm = TRUE)
   
   dfAux <- data.frame(
     Mean = sampleMeans,
@@ -508,10 +604,10 @@ meanSDdiffArea <- function(data) {
     Sample = colnames(data)
   )
   
-  dfAux <- dfAux %>% dplyr::arrange(Mean)
+  dfAux <- dfAux[order(dfAux$Mean), ]
   dfAux$Order <- seq_len(nrow(dfAux))
   
-  fit <- lm(SD ~ Order, data = dfAux)
+  fit <- stats::lm(SD ~ Order, data = dfAux)
   slope <- fit$coefficients["Order"]
   
   resultArea <- diffAreas(
@@ -587,13 +683,17 @@ meanSDdiffArea <- function(data) {
 #'
 #' @examples
 #' dataExample <- data.frame(
-#'   G1_1 = c(10, 20, 30, 40, 50),
-#'   G1_2 = c(11, 21, 29, 39, 49),
-#'   G2_1 = c(12, 22, 31, 41, 52),
-#'   G2_2 = c(13, 23, 30, 42, 51)
+#'   G1_1 = c(10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+#'            20, 21, 22, 23, 24, 25, 26, 27, 28, 29),
+#'   G1_2 = c(10.5, 11.5, 11.8, 13.2, 14.1, 15.3, 15.7, 17.4, 18.2, 19.1,
+#'            20.1, 21.2, 21.8, 23.1, 24.0, 25.2, 26.1, 27.1, 28.2, 29.0),
+#'   G2_1 = c(13.5, 14.0, 14.2, 15.8, 16.4, 17.1, 17.8, 18.9, 19.5, 20.2,
+#'            21.0, 21.8, 22.5, 23.7, 24.6, 25.4, 26.5, 27.4, 28.5, 29.4),
+#'   G2_2 = c(14.5, 14.3, 14.8, 16.0, 16.6, 17.3, 18.0, 19.0, 19.6, 20.3,
+#'            21.1, 21.9, 22.6, 23.8, 24.7, 25.5, 26.6, 27.5, 28.6, 29.5)
 #' )
 #'
-#' maDiffAreas(
+#' maDiffArea(
 #'   data = dataExample,
 #'   samplesG1 = c("G1_1", "G1_2"),
 #'   samplesG2 = c("G2_1", "G2_2")
@@ -608,7 +708,7 @@ meanSDdiffArea <- function(data) {
 maDiffArea <- function(data, samplesG1, samplesG2) {
   data <- as.data.frame(data)
   maData <- data[, c(samplesG1, samplesG2)]
-  maData <- na.omit(maData)
+  maData <- stats::na.omit(maData)
   
   maData$logFC <- apply(maData, 1, function(x) {
     mean(x[samplesG2], na.rm = TRUE) - mean(x[samplesG1], na.rm = TRUE)
@@ -618,22 +718,24 @@ maDiffArea <- function(data, samplesG1, samplesG2) {
     (mean(x[samplesG2], na.rm = TRUE) + mean(x[samplesG1], na.rm = TRUE)) / 2
   })
   
-  expressionDeciles <- quantile(maData$AveExpr, probs = seq(0, 1, 0.1))
+  expressionDeciles <- stats::quantile(maData$AveExpr, probs = seq(0, 1, 0.1))
   
   iqrByBin <- sapply(seq_len(length(expressionDeciles) - 1), function(i) {
-    maData %>%
-      dplyr::filter(AveExpr > expressionDeciles[i] & AveExpr <= expressionDeciles[i + 1]) %>%
-      dplyr::pull(logFC) %>%
-      stats::IQR()
+    logFCValues <- maData$logFC[
+      maData$AveExpr > expressionDeciles[i] &
+        maData$AveExpr <= expressionDeciles[i + 1]
+    ]
+    
+    stats::IQR(logFCValues, na.rm = TRUE)
   })
   
-  rho <- cor(iqrByBin, 10:1, method = "spearman")
+  rho <- stats::cor(iqrByBin, 10:1, method = "spearman")
   rho <- (1 - rho) / 2
   shapeCorrectionFactor <- 0.1 + (1 - 0.1) * rho
   
   maData <- maData[, c("logFC", "AveExpr")]
   
-  fit <- lm(logFC ~ AveExpr, data = maData)
+  fit <- stats::lm(logFC ~ AveExpr, data = maData)
   slope <- fit$coefficients["AveExpr"]
   intercept <- fit$coefficients["(Intercept)"]
   
@@ -688,14 +790,18 @@ maDiffArea <- function(data, samplesG1, samplesG2) {
 #'
 #' @examples
 #' dataExample <- data.frame(
-#'   Sample1 = c(10, 20, 30),
-#'   Sample2 = c(11, 19, 29),
-#'   Sample3 = c(15, 18, 35),
-#'   Sample4 = c(14, 19, 34)
+#'   S1 = c(10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+#'            20, 21, 22, 23, 24, 25, 26, 27, 28, 29),
+#'   S2 = c(10.5, 11.5, 11.8, 13.2, 14.1, 15.3, 15.7, 17.4, 18.2, 19.1,
+#'            20.1, 21.2, 21.8, 23.1, 24.0, 25.2, 26.1, 27.1, 28.2, 29.0),
+#'   S3 = c(13.5, 14.0, 14.2, 15.8, 16.4, 17.1, 17.8, 18.9, 19.5, 20.2,
+#'            21.0, 21.8, 22.5, 23.7, 24.6, 25.4, 26.5, 27.4, 28.5, 29.4),
+#'   S4 = c(14.5, 14.3, 14.8, 16.0, 16.6, 17.3, 18.0, 19.0, 19.6, 20.3,
+#'            21.1, 21.9, 22.6, 23.8, 24.7, 25.5, 26.6, 27.5, 28.6, 29.5)
 #' )
 #'
 #' groupDataExample <- data.frame(
-#'   Samples = c("Sample1", "Sample2", "Sample3", "Sample4"),
+#'   Samples = c("S1", "S2", "S3", "S4"),
 #'   Groups = c("A", "A", "B", "B")
 #' )
 #'
@@ -761,22 +867,25 @@ groupProteinCV <- function(group, groupData, data) {
 #'
 #' @examples
 #' # Example structure only
-#' dfDatos <- data.frame(
-#'   Sample1 = c(10, 20, 30),
-#'   Sample2 = c(11, 21, 29),
-#'   Sample3 = c(15, 18, 35),
-#'   Sample4 = c(14, 19, 34)
+#' dataExample <- data.frame(
+#'   S1 = c(10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+#'            20, 21, 22, 23, 24, 25, 26, 27, 28, 29),
+#'   S2 = c(10.5, 11.5, 11.8, 13.2, 14.1, 15.3, 15.7, 17.4, 18.2, 19.1,
+#'            20.1, 21.2, 21.8, 23.1, 24.0, 25.2, 26.1, 27.1, 28.2, 29.0),
+#'   S3 = c(13.5, 14.0, 14.2, 15.8, 16.4, 17.1, 17.8, 18.9, 19.5, 20.2,
+#'            21.0, 21.8, 22.5, 23.7, 24.6, 25.4, 26.5, 27.4, 28.5, 29.4),
+#'   S4 = c(14.5, 14.3, 14.8, 16.0, 16.6, 17.3, 18.0, 19.0, 19.6, 20.3,
+#'            21.1, 21.9, 22.6, 23.8, 24.7, 25.5, 26.6, 27.5, 28.6, 29.5)
 #' )
 #'
-#' dfGrupos <- data.frame(
-#'   Sample = c("Sample1", "Sample2", "Sample3", "Sample4"),
-#'   Group = c("A", "A", "B", "B")
+#' groupDataExample <- data.frame(
+#'   Samples = c("S1", "S2", "S3", "S4"),
+#'   Groups = c("A", "A", "B", "B")
 #' )
-#'
-#' grupos <- c("A", "B")
+#' groups <- c("A", "B")
 #'
 #' # Requires groupProteinCV() to be available
-#' getPCV(dfDatos, grupos, dfGrupos)
+#' getPCV(dataExample, groups, groupDataExample)
 #'
 #' @seealso
 #' \code{\link{groupProteinCV}}
@@ -785,9 +894,11 @@ groupProteinCV <- function(group, groupData, data) {
 #' @keywords internal
 
 getPCV <- function(data, groups, groupData){
-  groupDataProt <- as.data.frame(sapply(groups, groupProteinCV, 
-                                       dfGrupos = groupData, 
-                                       data = data))
+  groupDataProt <- as.data.frame(
+    sapply(groups, groupProteinCV, 
+           groupData = groupData, 
+           data = data)
+  )
   meanVal <- apply(groupDataProt, 2, mean, na.rm = TRUE)
   names(meanVal) <- colnames(groupDataProt)
   return(meanVal)
@@ -856,25 +967,25 @@ getPCV <- function(data, groups, groupData){
 
 withinGroupCorrelations <- function(data, groupData, method = "spearman") {
   data <- as.data.frame(data)
+  groupData <- as.data.frame(groupData)
   
   allCorrelations <- lapply(unique(groupData$Groups), function(group) {
-    samplesByGroup <- groupData %>%
-      dplyr::filter(Groups == group) %>%
-      dplyr::pull(Samples)
+    samplesByGroup <- groupData[groupData$Groups == group, "Samples"]
     
-    groupMatrix <- data %>%
-      dplyr::select(dplyr::all_of(samplesByGroup))
+    groupMatrix <- data[, samplesByGroup, drop = FALSE]
     
     corMatrix <- stats::cor(groupMatrix, use = "complete.obs", method = method)
     
     corMatrix[lower.tri(corMatrix)] <- NA
     diag(corMatrix) <- NA
     
-    stats::na.omit(reshape2::melt(corMatrix))
+    correlationValues <- as.vector(corMatrix)
+    correlationValues <- stats::na.omit(correlationValues)
+    
+    return(correlationValues)
   })
   
-  correlationVector <- as.data.frame(dplyr::bind_rows(allCorrelations)) %>%
-    dplyr::pull(value)
+  correlationVector <- unlist(allCorrelations, use.names = FALSE)
   
   return(correlationVector)
 }
@@ -922,7 +1033,7 @@ withinGroupCorrelations <- function(data, groupData, method = "spearman") {
 #'
 #' indicesExample <- c(1, 2, 2, 4)
 #'
-#' bootstrapScoreRows(dataExample, indicesExample)
+#' bootstrapRowScores(dataExample, indicesExample)
 #'
 #' @export
 #' @keywords internal
@@ -952,28 +1063,6 @@ bootstrapRowScores <- function(data, indices) {
 #' @param scoreMatrix `numeric` matrix where rows correspond to scoring items
 #'   and columns correspond to normalization methods.
 #' @param nBoot `integer`. Number of bootstrap resamples. Default is `1000`.
-#'
-#' @return
-#' A `data.frame` with one row per normalization method and the following columns:
-#' \describe{
-#'   \item{Normalization}{Name of the normalization method.}
-#'   \item{Mean normScore}{Mean bootstrap score.}
-#'   \item{LL95\%}{Lower bound of the 95\% percentile confidence interval.}
-#'   \item{UL95\%}{Upper bound of the 95\% percentile confidence interval.}
-#' }
-#'
-#' @details
-#' The function performs the following steps:
-#' \enumerate{
-#'   \item Applies bootstrap resampling over rows of `scoreMatrix`.
-#'   \item Computes total scores per normalization for each resample.
-#'   \item Estimates the mean score across bootstrap replicates.
-#'   \item Computes 95\% percentile confidence intervals using
-#'   \code{\link[boot]{boot.ci}}.
-#' }
-#'
-#' The resulting table is sorted by increasing mean score, where lower values
-#' indicate better normalization performance.
 #'
 #' @examples
 #' scoreMatrix <- matrix(
@@ -1018,18 +1107,14 @@ computeBootstrapNormScore <- function(scoreMatrix, nBoot = 1000) {
   )
   
   colnames(bootstrapScores) <- c(
-    "Normalization",
-    "Mean normScore",
-    "LL95%",
-    "UL95%"
+    "normalization",
+    "meanNormScore",
+    "ll95",
+    "ul95"
   )
+  bootstrapScores[-1] <- lapply(bootstrapScores[-1], as.numeric)
   
-  bootstrapScores$`Mean normScore` <- as.numeric(bootstrapScores$`Mean normScore`)
-  bootstrapScores$`LL95%` <- as.numeric(bootstrapScores$`LL95%`)
-  bootstrapScores$`UL95%` <- as.numeric(bootstrapScores$`UL95%`)
-  
-  bootstrapScores <- bootstrapScores %>%
-    dplyr::arrange(`Mean normScore`)
+  bootstrapScores <- bootstrapScores[order(bootstrapScores$meanNormScore), ]
   
   return(bootstrapScores)
 }
@@ -1069,10 +1154,10 @@ computeBootstrapNormScore <- function(scoreMatrix, nBoot = 1000) {
 #'
 #' @examples
 #' bootstrapScores <- data.frame(
-#'   Normalization = c("Norm1", "Norm2", "Norm3"),
-#'   `Mean normScore` = c(0.25, 0.40, 0.32),
-#'   `LL95%` = c(0.20, 0.35, 0.28),
-#'   `UL95%` = c(0.30, 0.45, 0.36)
+#'   normalization = c("Norm1", "Norm2", "Norm3"),
+#'   meanNormScore = c(0.25, 0.40, 0.32),
+#'   ll95 = c(0.20, 0.35, 0.28),
+#'   ul95 = c(0.30, 0.45, 0.36)
 #' )
 #'
 #' plotBootstrapNormScore(bootstrapScores)
@@ -1084,24 +1169,38 @@ computeBootstrapNormScore <- function(scoreMatrix, nBoot = 1000) {
 #' @keywords internal 
 
 plotBootstrapNormScore <- function(bootstrapScores) {
+  
+  # Checking colnames
+  namesCols <- c(
+    "normalization",
+    "meanNormScore",
+    "ll95",
+    "ul95"
+  )
+  
+  if (!all(colnames(bootstrapScores) == namesCols)){
+    colnames(bootstrapScores) <- namesCols
+  }
+  
+  # Plot!
   p <- ggplot2::ggplot(
     bootstrapScores,
     ggplot2::aes(
-      x = `Mean normScore`,
-      y = stats::reorder(Normalization, `Mean normScore`)
+      x = .data$meanNormScore,
+      y = stats::reorder(.data$normalization, .data$meanNormScore)
     )
   ) +
     ggplot2::geom_errorbar(
       ggplot2::aes(
-        xmin = `LL95%`,
-        xmax = `UL95%`
+        xmin = .data$ll95,
+        xmax = .data$ul95
       ),
       width = 0.2,
       orientation = "y"
     ) +
     ggplot2::geom_point(size = 3) +
     ggplot2::labs(
-      x = "Mean normScore \u00b1 95% CI",
+      x = "Mean normScore [95% CI]",
       y = "Normalization"
     ) +
     ggplot2::theme_minimal() +
@@ -1112,3 +1211,7 @@ plotBootstrapNormScore <- function(bootstrapScores) {
   
   return(p)
 }
+
+
+#' @importFrom rlang .data
+NULL

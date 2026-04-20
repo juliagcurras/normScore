@@ -98,6 +98,7 @@
 #'   addMissing = TRUE,
 #'   seed = 123
 #' )
+#' 
 #'
 #' dim(simData$logData)
 #' head(simData$metadata)
@@ -156,7 +157,7 @@ simulateData <- function(
   nSamples <- length(groups)
   
   #----- Protein mean abundances ####
-  mu <- rnorm(nProteins, muMean, muSd)
+  mu <- stats::rnorm(nProteins, muMean, muSd)
   mu <- pmin(pmax(mu, muClip[1]), muClip[2])
   
   lowAbundanceWeight <- (muClip[2] - mu) / (muClip[2] - muClip[1])
@@ -176,7 +177,7 @@ simulateData <- function(
       logFCSdVector <- logFCSd * fcMultiplier
     }
     
-    logFC[deIndex] <- rnorm(nDE, logFCMean, logFCSdVector) * sample(c(-1, 1), nDE, TRUE)
+    logFC[deIndex] <- stats::rnorm(nDE, logFCMean, logFCSdVector) * sample(c(-1, 1), nDE, TRUE)
   }
   
   groupContrast <- ifelse(groups == "G1", 0.5, -0.5)
@@ -207,18 +208,18 @@ simulateData <- function(
   sampleLatentFactor[group1Index] <- sampleLatentFactor[group1Index] - mean(sampleLatentFactor[group1Index])
   sampleLatentFactor[group2Index] <- sampleLatentFactor[group2Index] - mean(sampleLatentFactor[group2Index])
   
-  proteinLoadings <- rnorm(nProteins, 0, loadingSd)
+  proteinLoadings <- stats::rnorm(nProteins, 0, loadingSd)
   factorMatrix <- outer(proteinLoadings, sampleLatentFactor)
   
   #----- Heteroscedastic residual noise (MA wedge) ####
   sigmaVector <- sigmaHi + (lowAbundanceWeight^gammaSigma) * (sigmaLo - sigmaHi)
-  residualMatrix <- matrix(rnorm(nProteins * nSamples), nrow = nProteins, ncol = nSamples) * sigmaVector
+  residualMatrix <- matrix(stats::rnorm(nProteins * nSamples), nrow = nProteins, ncol = nSamples) * sigmaVector
   
   #----- Global sample shifts ####
   sampleShift <- rep(0, nSamples)
   
   if (sampleShiftSd > 0) {
-    sampleShift <- rnorm(nSamples, mean = 0, sd = sampleShiftSd)
+    sampleShift <- stats::rnorm(nSamples, mean = 0, sd = sampleShiftSd)
     sampleShift <- sampleShift - mean(sampleShift)
     
     if (!is.null(sampleShiftCap) && is.finite(sampleShiftCap)) {
@@ -242,7 +243,7 @@ simulateData <- function(
       zMean <- rep(0, nSamples)
     }
     
-    randomNoise <- as.numeric(scale(rnorm(nSamples)))
+    randomNoise <- as.numeric(scale(stats::rnorm(nSamples)))
     if (anyNA(randomNoise)) {
       randomNoise <- rep(0, nSamples)
     }
@@ -263,31 +264,31 @@ simulateData <- function(
   
   #----- Row and column names ####
   rownames(logData) <- paste0("P", sprintf("%05d", seq_len(nProteins)))
-  colnames(logData) <- paste0(groups, "_", ave(seq_along(groups), groups, FUN = seq_along))
+  colnames(logData) <- paste0(groups, "_", stats::ave(seq_along(groups), groups, FUN = seq_along))
   
   #----- Optional MNAR missingness ####
   missingInfo <- NULL
   
   if (addMissing) {
-    sampleMissingShift <- rnorm(nSamples, 0, missingBySampleSd)
+    sampleMissingShift <- stats::rnorm(nSamples, 0, missingBySampleSd)
     sampleMissingShift <- sampleMissingShift - mean(sampleMissingShift)
     
     missingFunction <- function(intercept) {
-      missingProb <- plogis(
+      missingProb <- stats::plogis(
         intercept - kMnar * logData +
           matrix(sampleMissingShift, nrow = nProteins, ncol = nSamples, byrow = TRUE)
       )
       mean(missingProb, na.rm = TRUE) - targetMissing
     }
     
-    interceptHat <- uniroot(missingFunction, interval = c(-50, 50))$root
+    interceptHat <- stats::uniroot(missingFunction, interval = c(-50, 50))$root
     
-    missingProb <- plogis(
+    missingProb <- stats::plogis(
       interceptHat - kMnar * logData +
         matrix(sampleMissingShift, nrow = nProteins, ncol = nSamples, byrow = TRUE)
     )
     
-    missingMask <- matrix(runif(nProteins * nSamples), nrow = nProteins, ncol = nSamples) < missingProb
+    missingMask <- matrix(stats::runif(nProteins * nSamples), nrow = nProteins, ncol = nSamples) < missingProb
     logData[missingMask] <- NA_real_
     
     missingInfo <- list(
