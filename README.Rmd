@@ -26,10 +26,9 @@ usethis::use_news_md()
 usethis::use_vignette("normScore-intro")
 
 # Creating 
+usethis::use_r("utils")
 usethis::use_r("normScore")
-usethis::use_r("rankNormMethods")
-usethis::use_r("plotNormScore")
-usethis::use_r("validateInputs")
+usethis::use_r("simulateData")
 
 
 # Building 
