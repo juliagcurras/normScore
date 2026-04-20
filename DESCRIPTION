@@ -1,0 +1,37 @@
+Package: normScore
+Title: Evaluation and Ranking of Normalization Methods for Proteomics Data
+Version: 0.0.0.9000
+Authors@R: 
+    person(
+        given = "Julia",
+        family = "García Currás",
+        role = c("aut", "cre"),
+        email = "julia.gcurras@udc.es"
+    )
+Description: 
+    Provides tools to evaluate and rank normalization methods for omics datasets
+    using a composite score derived from multiple performance metrics. The package
+    is designed to support systematic benchmarking and comparison of normalization
+    strategies across datasets and experimental settings. It also includes
+    utilities for summarizing results and visualizing normalization performance.
+License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
+    license
+Encoding: UTF-8
+LazyData: false
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.0.0
+Depends: 
+    R (>= 4.5)
+Imports:
+    dplyr,
+    stats,
+    ggplot2
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+biocViews: Software, Proteomics, Normalization, QualityControl, Preprocessing
+URL: https://https://github.com/juliagcurras/normScore
+BugReports: https://https://github.com/juliagcurras/normScore/issues
