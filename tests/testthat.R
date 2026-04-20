@@ -9,3 +9,4 @@
 library(testthat)
 library(normScore)
 
+test_check("normScore")

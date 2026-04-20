@@ -95,7 +95,7 @@
 #'   Quantile =  NormalyzerDE::performQuantileNormalization(simData$rawData),
 #'   CyclicLoess = NormalyzerDE::performCyclicLoessNormalization(simData$rawData),
 #'   VSN =  NormalyzerDE::performVSNNormalization(simData$rawData),
-#'RLR =  NormalyzerDE::performGlobalRLRNormalization(simData$rawData)
+#'   RLR =  NormalyzerDE::performGlobalRLRNormalization(simData$rawData)
 #' )
 #' 
 #' # Compute ranking

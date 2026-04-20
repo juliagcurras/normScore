@@ -8,6 +8,8 @@
 
 
 
+
+
 #' Compare Two Normalized Datasets
 #'
 #' @description
@@ -42,6 +44,8 @@ isSameNormalization <- function(x, y, tolerance = 1e-8) {
   
   isTRUE(all.equal(x, y, tolerance = tolerance, check.attributes = FALSE))
 }
+
+
 
 
 
@@ -102,6 +106,10 @@ addLogIfMissing <- function(normalizedDataList, rawData, tolerance = 1e-8) {
   
   return(normalizedDataList)
 }
+
+
+
+
 
 
 #' Coefficient of Variation
