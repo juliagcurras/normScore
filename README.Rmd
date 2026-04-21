@@ -24,7 +24,8 @@ usethis::use_roxygen_md()
 usethis::use_testthat()
 usethis::use_news_md()
 usethis::use_vignette("normScore-intro")
-
+usethis::use_pkgdown()
+pkgdown::build_site()
 
 # Creating
 usethis::use_r("utils")
@@ -54,5 +55,6 @@ devtools::install()
 # normScore
 
 *normScore* is an R package for evaluating and ranking normalization methods in proteomics data based on a composite score that integrates multiple performance metrics
+
 
 

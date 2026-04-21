@@ -316,50 +316,51 @@ diffAreas <- function(intPred, coefPred, minRange, maxRange, intExpected = 0){
 
 
 
-#' RLE-Based Mean Absolute Percentage Error
+#' Compute an RLE-based MAPE metric across samples
 #'
-#' @description
-#' Computes a mean absolute percentage error (MAPE)-based metric from relative
-#' expression values derived from a numeric matrix or data frame.
-#'
-#' For each feature (row), the median across samples is calculated and used as
-#' a reference. Each value is then divided by the corresponding row median to
-#' obtain relative expression values on the original scale (without log
-#' transformation). Finally, the median relative expression is computed for each
-#' sample (column), and the mean absolute percentage error of these medians with
-#' respect to 1 is returned.
-#'
-#' @param data `data.frame` or matrix of numeric values, where rows typically
-#'   represent features (e.g. genes or proteins) and columns represent samples.
-#'
-#' @return
-#' A numeric value corresponding to the mean absolute percentage error of the
-#' sample-wise median relative expression values relative to 1.
-#'
-#' @details
-#' The function applies the following steps:
-#' \enumerate{
-#'   \item Computes the median of each row.
-#'   \item Divides each row value by its row median.
-#'   \item Computes the median relative expression value for each column.
-#'   \item Returns the mean absolute percentage error between these medians and 1.
+#' Calculates a sample-level metric based on Relative Log Expression (RLE)
+#' transformed values and mean absolute percentage error (MAPE). For each row,
+#' the row median is subtracted from the original values, the result is
+#' back-transformed with `2^x`, and sample-wise quartiles are computed.
+#' The final metric is the sum of:
+#' \itemize{
+#'   \item MAPE between 1 and the sample medians
+#'   \item MAPE between the median of first quartiles and each sample first quartile
+#'   \item MAPE between the median of third quartiles and each sample third quartile
 #' }
 #'
-#' Lower values indicate that the sample-wise median relative expression values
-#' are closer to 1, which may reflect better normalization consistency across
-#' samples.
+#' Lower values indicate greater similarity across samples after RLE-based
+#' centering.
 #'
-#' Note that if any row median is equal to 0, divisions by zero may occur,
-#' potentially leading to `Inf`, `NaN`, or unstable results.
+#' @param data A numeric matrix-like object with features in rows and samples
+#'   in columns. Missing values (`NA`) are allowed.
+#'
+#' @return A single numeric value corresponding to the final RLE-based MAPE
+#'   metric.
+#'
+#' @details
+#' The function performs the following steps:
+#' \enumerate{
+#'   \item Computes the row-wise medians.
+#'   \item Centers each row by subtracting its median.
+#'   \item Applies back-transformation using `2^x`.
+#'   \item Computes sample-wise first quartile, median, and third quartile.
+#'   \item Combines three MAPE terms into a final summary metric.
+#' }
+#'
+#' This function assumes that a compatible `mape()` function is available in the
+#' package namespace.
 #'
 #' @examples
-#' dataExample <- data.frame(
-#'   Sample1 = c(10, 20, 30, 40),
-#'   Sample2 = c(12, 19, 29, 41),
-#'   Sample3 = c(11, 21, 31, 39)
+#' mat <- matrix(
+#'   c(1, 2, 3,
+#'     2, 3, 4,
+#'     5, 6, 7),
+#'   nrow = 3,
+#'   byrow = TRUE
 #' )
 #'
-#' rleMAPE(dataExample)
+#' rleMAPE(mat)
 #'
 #' @seealso
 #' \code{\link{mape}}
@@ -372,11 +373,23 @@ rleMAPE <- function(data) {
   
   # rleData <- as.data.frame(t(t(data) / rowMedians))
   rleData <- data - rowMedians
+  rleData <- 2^rleData
   
-  sampleMedians <- apply(rleData, 2, stats::median, na.rm = TRUE)
-  sampleMedians <- 2^sampleMedians # No log for MAPE
+  # sampleMedians <- apply(rleData, 2, stats::median, na.rm = TRUE)
+  # sampleMedians <- 2^sampleMedians # No log for MAPE
   
-  return(mape(actual = 1, predicted = sampleMedians, proportion = FALSE))
+  sampleQuantiles <- apply(rleData, 2, stats::quantile, na.rm = TRUE, simplify = FALSE)
+  q1 <- sapply(sampleQuantiles, "[[", 2)
+  sampleMedians <- sapply(sampleQuantiles, "[[", 3)
+  q3 <- sapply(sampleQuantiles, "[[", 4)
+  
+  finalMetric <- 
+    mape(actual = 1, predicted = sampleMedians, proportion = TRUE) +
+    mape(actual = stats::median(q1), predicted = q1, proportion = TRUE) +
+    mape(actual = stats::median(q3), predicted = q3, proportion = TRUE)
+  
+  # return(mape(actual = 1, predicted = sampleMedians, proportion = FALSE))
+  return(finalMetric)
 } 
 
 

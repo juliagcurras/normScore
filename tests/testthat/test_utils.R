@@ -152,38 +152,53 @@ test_that("mape computes mean absolute percentage error as proportion", {
 
 
 # rleMAPE function ####
-test_that("rleMAPE returns 0 when sample-wise median relative expression values are 1", {
-  dataExample <- data.frame(
-    S1 = c(10, 20, 30, 40),
-    S2 = c(10, 20, 30, 40),
-    S3 = c(10, 20, 30, 40)
+test_that("rleMAPE returns a single non-negative numeric value", {
+  mat <- matrix(
+    c(1, 2, 3,
+      2, 3, 4,
+      5, 6, 7),
+    nrow = 3,
+    byrow = TRUE
   )
   
-  expect_equal(rleMAPE(dataExample), 0)
+  result <- rleMAPE(mat)
+  
+  expect_type(result, "double")
+  expect_length(result, 1)
+  expect_false(is.na(result))
+  expect_gte(result, 0)
 })
 
-test_that("rleMAPE returns a positive value when sample-wise median relative expression values deviate from 1", {
-  dataExample <- data.frame(
-    S1 = c(10, 20, 30, 40),
-    S2 = c(12, 24, 36, 48),
-    S3 = c(8, 16, 24, 32)
+test_that("rleMAPE is zero when all columns are identical", {
+  mat <- matrix(
+    c(1, 1, 1,
+      2, 2, 2,
+      3, 3, 3,
+      4, 4, 4),
+    nrow = 4,
+    byrow = TRUE
   )
   
-  expect_true(rleMAPE(dataExample) > 0)
+  result <- rleMAPE(mat)
+  
+  expect_equal(result, 0)
 })
-
-test_that("rleMAPE matches the manually computed expected value", {
-  dataExample <- data.frame(
-    S1 = c(10, 20, 30, 40),
-    S2 = c(12, 24, 36, 48),
-    S3 = c(8, 16, 24, 32)
+test_that("rleMAPE handles missing values when enough data are available", {
+  mat <- matrix(
+    c(1,  1, NA,
+      2,  2,  2,
+      3, NA,  3,
+      4,  4,  4),
+    nrow = 4,
+    byrow = TRUE
   )
   
-  rleData <- dataExample - apply(dataExample, 1, stats::median, na.rm = TRUE)
-  sampleMedians <- 2^apply(rleData, 2, stats::median, na.rm = TRUE)
-  expected <- mean(abs((1 - sampleMedians) / 1)) * 100
+  result <- rleMAPE(mat)
   
-  expect_equal(rleMAPE(dataExample), expected)
+  expect_type(result, "double")
+  expect_length(result, 1)
+  expect_false(is.na(result))
+  expect_gte(result, 0)
 })
 
 
