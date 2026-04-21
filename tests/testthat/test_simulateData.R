@@ -1,5 +1,4 @@
 
-
 # simulateData ####
 
 test_that("simulateData returns expected output structure", {

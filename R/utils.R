@@ -159,45 +159,7 @@ cv <- function(x, proportion =TRUE, na.rm = TRUE) {
   }
   return(coeficiente)
 } 
-
-
-
-
-
-
-#' Mean Squared Error
-#'
-#' @description
-#' Computes the mean squared error (MSE) between observed (`actual`) and
-#' predicted values. It is defined as the average of the squared differences
-#' between both vectors.
-#'
-#' @param actual `numeric`. Vector of observed (true) values.
-#' @param predicted `numeric`. Vector of predicted values. Must have the same
-#'   length as `actual`.
-#'
-#' @return
-#' A numeric value representing the mean squared error.
-#'
-#' @details
-#' The mean squared error is defined as:
-#'
-#' \deqn{MSE = \frac{1}{n} \sum_{i=1}^{n} (actual_i - predicted_i)^2}
-#'
-#' Lower values indicate better agreement between observed and predicted values.
-#'
-#' @examples
-#' actual <- c(3, -0.5, 2, 7)
-#' predicted <- c(2.5, 0.0, 2, 8)
-#'
-#' mse(actual, predicted)
-#'
-#' @export
-#' @keywords internal
-
-mse <- function(actual, predicted){
-  mean((actual - predicted)^2)
-} 
+ 
 
 
 
@@ -354,67 +316,6 @@ diffAreas <- function(intPred, coefPred, minRange, maxRange, intExpected = 0){
 
 
 
-#' RLE-Based Mean Squared Error
-#'
-#' @description
-#' Computes a mean squared error (MSE)-based metric from relative log expression
-#' (RLE) values derived from a numeric matrix or data frame.
-#'
-#' For each feature (row), the median across samples is calculated and used as
-#' a reference. Then, relative log expression values are obtained by dividing
-#' each value by the corresponding row median and applying a log2 transformation.
-#' Finally, the median RLE value is computed for each sample (column), and the
-#' mean squared error of these medians with respect to 0 is returned.
-#'
-#' @param data `data.frame` or matrix of numeric values, where rows typically
-#'   represent features (e.g. genes or proteins) and columns represent samples.
-#'
-#' @return
-#' A numeric value corresponding to the mean squared error of the sample-wise
-#' median RLE values relative to 0.
-#'
-#' @details
-#' The function applies the following steps:
-#' \enumerate{
-#'   \item Computes the median of each row.
-#'   \item Divides each row value by its row median.
-#'   \item Applies a log2 transformation to obtain RLE values.
-#'   \item Computes the median RLE value for each column.
-#'   \item Returns the mean squared error between these medians and 0.
-#' }
-#'
-#' Lower values indicate that the sample-wise median RLE values are closer to
-#' zero, which may reflect better normalization consistency across samples.
-#'
-#' @examples
-#' dfExample <- data.frame(
-#'   Sample1 = c(10, 20, 30, 40),
-#'   Sample2 = c(12, 19, 29, 41),
-#'   Sample3 = c(11, 21, 31, 39)
-#' )
-#'
-#' rleMSE(dfExample)
-#'
-#' @seealso
-#' \code{\link{mse}}
-#' 
-#' 
-#' @export
-#' @keywords internal
-
-rleMSE <- function(data) {
-  rowMedians <- apply(data, 1, stats::median, na.rm = TRUE)
-  rleData <- as.data.frame(log2(t(t(data) / rowMedians)))
-  sampleMedians <- apply(rleData, 2, stats::median, na.rm = TRUE)
-  
-  mse(actual = 0, predicted = sampleMedians)
-} 
-
-
-
-
-
-
 #' RLE-Based Mean Absolute Percentage Error
 #'
 #' @description
@@ -469,9 +370,11 @@ rleMSE <- function(data) {
 rleMAPE <- function(data) {
   rowMedians <- apply(data, 1, stats::median, na.rm = TRUE)
   
-  rleData <- as.data.frame(t(t(data) / rowMedians))
+  # rleData <- as.data.frame(t(t(data) / rowMedians))
+  rleData <- data - rowMedians
   
   sampleMedians <- apply(rleData, 2, stats::median, na.rm = TRUE)
+  sampleMedians <- 2^sampleMedians # No log for MAPE
   
   return(mape(actual = 1, predicted = sampleMedians, proportion = FALSE))
 } 

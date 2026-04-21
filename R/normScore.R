@@ -111,6 +111,7 @@
 #' 
 #'
 #' @seealso
+#' \code{\link{addLogIfMissing}},
 #' \code{\link{getPCV}},
 #' \code{\link{withinGroupCorrelations}},
 #' \code{\link{maDiffArea}},
