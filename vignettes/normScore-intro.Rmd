@@ -1,5 +1,5 @@
 ---
-title: "normScore-intro"
+title: "Getting started with normScore"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{normScore-intro}
@@ -10,10 +10,162 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
 )
 ```
 
-```{r setup}
+
+## Overview
+
+`normScore` provides tools to evaluate and rank normalization methods for
+omics data using a composite multi-metric scoring framework.
+
+The package is designed to help compare different normalization strategies
+based on several complementary criteria, including variability, correlation
+structure, MA-trend behavior, relative log expression consistency, and
+sample-level intensity consistency.
+
+In this vignette, we show a minimal workflow using simulated data.
+
+## Simulating example data
+
+To keep the package lightweight and reproducible, `normScore` includes a
+data simulation function that generates proteomics-like two-group datasets.
+
+```{r}
 library(normScore)
+
+simData <- simulateData(
+  nProteins = 500,
+  nPerGroup = 4,
+  addMissing = FALSE,
+  seed = 123
+)
+```
+
+The simulated object contains three main elements:
+
+```{r}
+names(simData)
+```
+
+* `logData`: simulated data on the log2 scale
+* `rawData`: simulated data on the raw scale
+* `metadata`: sample annotation with group membership
+
+We can inspect the sample metadata:
+
+```{r}
+head(simData$metadata)
+```
+
+## Building a list of normalized datasets
+
+The main function of the package, `normScore()`, expects a named list of
+normalized datasets. Each element of the list should be a matrix or data
+frame with the same rows (features) and columns (samples).
+
+For illustration purposes, we create a few simple variants of the simulated
+log-scale data. In a real analysis, these would correspond to different
+normalization methods.
+
+```{r}
+normalizedDataList <- list(
+  Log = simData$logData,
+  Shifted = simData$logData + 0.1,
+  Scaled = simData$logData * 1.01
+)
+
+names(normalizedDataList)
+```
+
+## Running `normScore()`
+
+We now compute the normalization ranking.
+
+```{r}
+result <- normScore(
+  normalizedDataList = normalizedDataList,
+  groupData = simData$metadata,
+  rawData = simData$rawData,
+  onlyFinalRanking = FALSE,
+  nBoot = 50
+)
+```
+
+## Final ranking
+
+The `finalRanking` element contains the final composite score for each
+normalization method.
+
+```{r}
+result$finalRanking
+```
+
+Lower values indicate better normalization performance according to the
+scoring framework implemented in the package.
+
+## Detailed scores
+
+The `detailRanking` element contains the scaled item-wise scores used to
+build the final ranking.
+
+```{r}
+result$detailRanking
+```
+
+The six item scores correspond to:
+
+1. pooled coefficient of variation
+2. within-group sample correlation
+3. MA-plot trend deviation
+4. mean-SD trend deviation
+5. RLE consistency
+6. total intensity consistency
+
+These are scaled and combined into a final score.
+
+## Bootstrap summary
+
+If `onlyFinalRanking = FALSE`, the function also computes bootstrap-based
+summary scores and confidence intervals.
+
+```{r}
+result$bootstrapScore
+```
+
+This output contains:
+
+* the normalization method name
+* the mean bootstrap normScore
+* the lower 95% confidence bound
+* the upper 95% confidence bound
+
+## Bootstrap plot
+
+The bootstrap summary can also be visualized directly:
+
+```{r}
+result$graphic
+```
+
+## Notes on the scoring framework
+
+The `normScore()` function combines multiple complementary criteria into a
+single ranking. This is useful because no single metric fully captures
+normalization quality.
+
+Some items emphasize within-group consistency, whereas others evaluate
+distributional behavior or trend distortions introduced by normalization.
+
+The resulting score should therefore be interpreted as a comparative measure
+across candidate normalization methods rather than as an absolute quality
+index.
+
+## Session information
+
+```{r}
+sessionInfo()
 ```
