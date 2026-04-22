@@ -179,19 +179,13 @@ normScore <- function(
   scoreList[["PCV"]] <- item1
   
   #----- ITEM 2 - Correlation (Spearman) ####
-  allCorrelationVectors <- lapply(
+  dfCor <- sapply(
     normalizedDataList,
     withinGroupCorrelations,
     groupData = groupData,
-    method = "spearman"
-  )
-  
-  dfCor <- data.frame(
-    sapply(
-      allCorrelationVectors,
-      "length<-",
-      max(lengths(allCorrelationVectors))
-    )
+    method = "spearman", 
+    simplify = T, 
+    USE.NAMES = T
   )
   
   item2 <- sapply(

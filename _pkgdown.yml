@@ -1,4 +1,9 @@
 url: ~
 template:
   bootstrap: 5
+  lightswitch: true   # Esto añade el botón de sol/luna en la barra superior
+  bootswatch: flatly
 
+navbar:
+  structure:
+    right: [github, search]

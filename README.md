@@ -1,8 +1,120 @@
 normScore: a package for assessing normalization in proteomics data
 ================
 
-# normScore
-
 *normScore* is an R package for evaluating and ranking normalization
 methods in proteomics data based on a composite score that integrates
-multiple performance metrics
+multiple performance metrics.
+
+## Relevant links
+
+Check the following repository to a deepen view into the normScore
+structure:
+[normScore-development](https://github.com/juliagcurras/normScore-development).
+
+Click the following link to access the *pkgdown* web page of the
+package: .
+
+Do not like coding? Do not worry, you can use the *normScore* shiny app:
+.
+
+## Background
+
+Preprocessing is a crutial step in proteomics data analysis, including
+dealing with missing data, imputation and normalization, among others.
+The options and parameters selected during this initial process will
+impact the following results. Thus, it is necessary to make the best
+decisions based on solid evidence.
+
+Regarding normalization, [Chawade et
+al. 2014](https://pubs.acs.org/doi/10.1021/pr401264n) had proposed a
+combination of graphic and metric assessments to decide which
+normalization method should be applied to our data, that were
+implemented in a very useful and easy-to-used package with a
+corresponding shiny app which makes the tool more accesible to all
+users, specially the ones without coding skills.
+
+To use
+*[normalyzerDE](https://www.bioconductor.org/packages/release/bioc/html/NormalyzerDE.html)*,
+it is necessary to know how to interpert the different graphics and the
+meaning of the different metric, a fact that can be difficult to reach
+for most of the users that will only used proteomics in a specific part
+of their project. Moreover, the final decision is based on the
+qualitative criteria of the user, and the own assessment can become a
+difficult task when the performance of the different normalization
+methods varies a lot across the multiple criteria used to assess.
+
+Consequently, we have selected some of the criteria for normalization
+assessment proposed at NormalyzerDE. For each criteria, we built a
+metric to rank each normalization based on their performance for that
+specific criteria. Then, all metrics were standardized and summed to
+obtained a composite, global score that ranks all the normalizations
+based on their performance across the different metrics.
+
+We strongly recommend using this score in comination with the graphical
+representations provided by NormalyzerDE, and using it as a guide that
+helps in the selection of the best normalization method.
+
+## Installing normScore
+
+*normScore* package can be install through GitHub directly, both the
+develop or the stable version:
+
+``` r
+# Develop
+devtools::install_github("juliagcurras/normScore")
+
+# Stable
+```
+
+## Quick start
+
+Three imputs are required to use *normScore* main function:
+
+1.  Your raw proteomic dataset (with proteins in rows and sample names
+    at colnames), without logarithmic transformation.
+
+2.  A list with this dataset after applying different normalization
+    methods (one element for each normalization)
+
+3.  The desing matrix, that is, a *data.frame* with two columnas with
+    the correspondence between sample names (first column) and group
+    names (second column).
+
+With simulateData function, some example data can be generated to test
+the main function as in the following example:
+
+``` r
+# Load library
+library(normScore)
+
+# Simulate example data
+simData <- normScore::simulateData(
+  nProteins = 100, 
+  seed = 9396
+) # List with 3 elements: raw data matrix | Log-transformed matrix | Metadata
+
+# Create a list with all normalizations
+listData <- list(
+  Log = simData$logData, 
+  Method1 = simData$logData+0.1, 
+  Method2 = simData$logData+0.5
+)
+```
+
+Once you gathered all input data, *normScore* is ready to be executed!
+
+``` r
+# Compare normalization methods with normScore
+normScore(
+  normalizedDataList = listData,
+  groupData = simData$metadata,
+  rawData = simData$rawData,
+  refGroup = NULL, # if non-stated, a random group will be picked as reference
+  altGroup = NULL, # if non-stated, a random group will be picked as alternative
+  onlyFinalRanking = TRUE 
+)
+```
+
+    ## $finalRanking
+    ##       Log   Method2   Method1 
+    ## 0.1370587 0.3888889 2.5910809

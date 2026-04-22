@@ -898,22 +898,18 @@ withinGroupCorrelations <- function(data, groupData, method = "spearman") {
     
     groupMatrix <- data[, samplesByGroup, drop = FALSE]
     
-    corMatrix <- stats::cor(groupMatrix, use = "complete.obs", method = method)
+    corMatrix <- stats::cor(groupMatrix, use = "pairwise.complete.obs", method = method)
     
-    corMatrix[lower.tri(corMatrix)] <- NA
-    diag(corMatrix) <- NA
+    corValues <- c()
+    for (i in seq_len(ncol(groupMatrix) - 1)) {
+      corValues <- c(corValues, corMatrix[i, -(seq_len(i))])
+    }
     
-    correlationValues <- as.vector(corMatrix)
-    correlationValues <- stats::na.omit(correlationValues)
-    
-    return(correlationValues)
+    corValues
   })
   
-  correlationVector <- unlist(allCorrelations, use.names = FALSE)
-  
-  return(correlationVector)
+  unlist(allCorrelations, use.names = FALSE)
 }
-
 
 
 
