@@ -27,19 +27,19 @@
 #'   metric. If `NULL`, the last group in `groupData` is used.
 #' @param altGroup `character` or `NULL`. Alternative group used for the MA-plot
 #'   metric. If `NULL`, the first group in `groupData` is used.
-#' @param onlyFinalRanking `logical`. If `TRUE`, only the final ranking is
+#' @param returnDetails `logical`. If `TRUE`, only the final ranking is
 #'   returned. If `FALSE`, detailed scores, bootstrap results, and a summary
 #'   plot are also returned. Default is `FALSE`.
 #' @param nBoot `integer`. Number of bootstrap resamples used to estimate mean
 #'   normScore values and confidence intervals. Default is `1000`.
 #'
 #' @return
-#' If `onlyFinalRanking = TRUE`, returns a list with:
+#' If `returnDetails = TRUE`, returns a list with:
 #' \describe{
 #'   \item{finalRanking}{Named numeric vector with the final normalization ranking.}
 #' }
 #'
-#' If `onlyFinalRanking = FALSE`, returns a list with:
+#' If `returnDetails = FALSE`, returns a list with:
 #' \describe{
 #'   \item{finalRanking}{Named numeric vector with the final normalization ranking.}
 #'   \item{detailRanking}{`data.frame` with scaled item-wise scores, total score,
@@ -77,7 +77,7 @@
 #' `"CyclicLoess"` to account for its lower discrimination power in this scoring
 #' framework.
 #'
-#' When `onlyFinalRanking = FALSE`, bootstrap resampling of the six item scores
+#' When `returnDetails = FALSE`, bootstrap resampling of the six item scores
 #' is performed using \code{\link{computeBootstrapNormScore}}, and the results
 #' are visualized with \code{\link{plotBootstrapNormScore}}.
 #'
@@ -105,7 +105,7 @@
 #'   rawData = simData$rawData,
 #'   refGroup = NULL,
 #'   altGroup = NULL,
-#'   onlyFinalRanking = FALSE,
+#'   returnDetails = FALSE,
 #'   nBoot = 100
 #'  ) 
 #' 
@@ -130,7 +130,7 @@ normScore <- function(
     rawData,
     refGroup = NULL,
     altGroup = NULL,
-    onlyFinalRanking = TRUE,
+    returnDetails = TRUE,
     nBoot = 1000
 ) {
   # Input:
@@ -142,6 +142,7 @@ normScore <- function(
   # 6. Number of bootstrap resamples
   
   #----- Initial checks ####
+  
   groupData <- as.data.frame(groupData)
   colnames(groupData) <- c("Samples", "Groups")
   
@@ -203,8 +204,13 @@ normScore <- function(
   scoreList[["Correlation"]] <- item2
   
   #----- ITEM 3 - MA plot regression line vs expected 0 ####
-  refGroup <- ifelse(is.null(refGroup), groupLevels[length(groupLevels)], refGroup)
-  altGroup <- ifelse(is.null(altGroup), groupLevels[1], altGroup)
+  if (is.null(refGroup)) {
+    refGroup <- groupLevels[length(groupLevels)]
+  }
+  
+  if (is.null(altGroup)) {
+    altGroup <- groupLevels[1]
+  }
   
   samplesG1 <- groupData[groupData$Groups == refGroup, "Samples"]
   samplesG2 <- groupData[groupData$Groups == altGroup, "Samples"]
@@ -267,7 +273,7 @@ normScore <- function(
   finalRanking <- stats::setNames(scaledScoreDF$TotalxItem0, rownames(scaledScoreDF))
   names(scaledScoreDF) <- c(paste0("Item", 1:6), "Total", "TotalxItem0")
   
-  if (onlyFinalRanking) {
+  if (returnDetails) {
     return(
       list(
         finalRanking = finalRanking

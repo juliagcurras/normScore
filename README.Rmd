@@ -25,6 +25,9 @@ knitr::opts_chunk$set(echo = TRUE)
 # usethis::use_news_md()
 # usethis::use_vignette("normScore-intro")
 # usethis::use_vignette("normScore-method")
+# usethis::use_vignette("normScore-simulation")
+# usethis::use_vignette("normScore-NormalyzerDE")
+# usethis::use_vignette("normScore-example")
 #
 # # Web page with documentation
 # usethis::use_pkgdown()

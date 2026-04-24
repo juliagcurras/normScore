@@ -73,7 +73,6 @@ isSameNormalization <- function(x, y, tolerance = 1e-8) {
 #' @seealso
 #' \code{\link{isSameNormalization}}
 #'
-#' @export
 #' @keywords internal
 
 addLogIfMissing <- function(normalizedDataList, rawData, tolerance = 1e-8) {
@@ -149,7 +148,6 @@ addLogIfMissing <- function(normalizedDataList, rawData, tolerance = 1e-8) {
 #' # As percentage
 #' cv(x, proportion = FALSE)
 #'
-#' @export
 #' @keywords internal
 
 cv <- function(x, proportion =TRUE, na.rm = TRUE) {
@@ -276,7 +274,6 @@ mape <- function(actual, predicted, proportion = FALSE){
 #'   intExpected = 1
 #' )
 #'
-#' @export
 #' @keywords internal
 
 diffAreas <- function(intPred, coefPred, minRange, maxRange, intExpected = 0){
@@ -365,7 +362,6 @@ diffAreas <- function(intPred, coefPred, minRange, maxRange, intExpected = 0){
 #' @seealso
 #' \code{\link{mape}}
 #'
-#' @export
 #' @keywords internal
 
 rleMAPE <- function(data) {
@@ -446,7 +442,6 @@ rleMAPE <- function(data) {
 #' @seealso
 #' \code{\link{mape}}
 #'
-#' @export
 #' @keywords internal
 
 tiMAPE <- function(data) {
@@ -515,7 +510,6 @@ tiMAPE <- function(data) {
 #' @seealso
 #' \code{\link{diffAreas}}
 #'
-#' @export
 #' @keywords internal
 
 meanSDdiffArea <- function(data) {
@@ -626,7 +620,6 @@ meanSDdiffArea <- function(data) {
 #' @seealso
 #' \code{\link{diffAreas}}
 #'
-#' @export
 #' @keywords internal
 
 maDiffArea <- function(data, samplesG1, samplesG2) {
@@ -738,7 +731,6 @@ maDiffArea <- function(data, samplesG1, samplesG2) {
 #' @seealso
 #' \code{\link{cv}}
 #'
-#' @export
 #' @keywords internal
 
 groupProteinCV <- function(group, groupData, data) {
@@ -814,7 +806,6 @@ groupProteinCV <- function(group, groupData, data) {
 #' @seealso
 #' \code{\link{groupProteinCV}}
 #'
-#' @export
 #' @keywords internal
 
 getPCV <- function(data, groups, groupData){
@@ -886,7 +877,6 @@ getPCV <- function(data, groups, groupData){
 #'   method = "pearson"
 #' )
 #'
-#' @export
 #' @keywords internal
 
 withinGroupCorrelations <- function(data, groupData, method = "spearman") {
@@ -955,7 +945,6 @@ withinGroupCorrelations <- function(data, groupData, method = "spearman") {
 #'
 #' bootstrapRowScores(dataExample, indicesExample)
 #'
-#' @export
 #' @keywords internal
 
 bootstrapRowScores <- function(data, indices) {
@@ -1000,7 +989,6 @@ bootstrapRowScores <- function(data, indices) {
 #' @seealso
 #' \code{\link{bootstrapRowScores}}
 #'
-#' @export
 #' @keywords internal
 
 computeBootstrapNormScore <- function(scoreMatrix, nBoot = 1000) {

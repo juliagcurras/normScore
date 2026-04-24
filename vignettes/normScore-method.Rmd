@@ -61,7 +61,7 @@ to compute a correction factor related to global sample intensity variation.
 
 The composite score is based on six item-wise metrics.
 
-### 1. Pooled coefficient of variation (PCV)
+### Item 1. Pooled coefficient of variation (PCV)
 
 This item summarizes within-group variability across samples.
 
@@ -72,7 +72,7 @@ dispersion within biological groups.
 This item captures whether a normalization method improves sample consistency
 without reference to differential structure.
 
-### 2. Within-group sample correlation
+### Item 2. Within-group sample correlation
 
 This item evaluates pairwise sample correlations within each group.
 
@@ -83,7 +83,7 @@ The score is transformed so that lower values indicate better performance.
 This item reflects whether samples from the same group become more similar
 after normalization.
 
-### 3. MA-trend deviation
+### Item 3. MA-trend deviation
 
 This item assesses whether the relationship between fold change and average
 expression shows systematic distortion.
@@ -100,7 +100,7 @@ across the expression range.
 
 Lower values indicate a flatter and more stable MA trend.
 
-### 4. Mean-SD trend deviation
+### Item 4. Mean-SD trend deviation
 
 This item evaluates whether sample standard deviations depend systematically
 on sample mean intensity.
@@ -115,7 +115,7 @@ measuring deviation from horizontality.
 Lower values indicate a weaker dependency between sample mean and sample
 variability.
 
-### 5. RLE consistency
+### Item 5. RLE consistency
 
 This item is inspired by the relative log expression (RLE) concept.
 
@@ -129,7 +129,7 @@ medians relative to 1.
 Lower values indicate that sample-wise medians are closer to the expected
 reference value.
 
-### 6. Total intensity consistency
+### Item 6. Total intensity consistency
 
 This item compares the distributional center and spread of sample intensity
 profiles.
@@ -159,6 +159,33 @@ A correction factor derived from the coefficient of variation of total raw
 sample intensities is applied specifically to the `"Log"` method. This is used
 to account for the extent of global intensity imbalance already present in the
 raw data.
+
+## Additional adjustments and weighting
+
+During the development of the scoring framework, two additional adjustments
+were introduced to improve the balance between items and avoid dominance by
+specific components.
+
+First, the contribution of the within-group correlation metric (Item 2) was
+reduced. This item was observed to have relatively low discriminative power
+across normalization methods, often yielding very similar values. To prevent
+it from contributing disproportionately to the final score despite its limited
+ability to differentiate methods, its scaled value was down-weighted by a
+factor of 0.1.
+
+Second, the correction factor applied to the log-transformed baseline
+normalization (Item 0) was moderated. This factor is derived from the
+coefficient of variation of total sample intensities in the raw data and is
+intended to account for global intensity imbalance.
+
+However, without adjustment, this correction could have an excessive influence
+on the final score, particularly for datasets with very low or very high
+values of the correction factor. To mitigate this effect, the magnitude of the
+correction was reduced by scaling it down (e.g., dividing or adjusting its
+impact), ensuring that it contributes to the ranking without dominating it.
+
+These adjustments were introduced to maintain a balanced contribution across
+items and to improve the stability and interpretability of the final ranking.
 
 ## Bootstrap summary
 
