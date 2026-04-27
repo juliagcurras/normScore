@@ -35,14 +35,4 @@ If \code{proportion = FALSE}, the result is multiplied by 100.
 Note that if the mean of \code{x} is 0 or very close to 0, the result may be
 \code{Inf}, \code{NaN}, or unstable.
 }
-\examples{
-x <- c(10, 12, 9, 11, 10)
-
-# As proportion
-cv(x)
-
-# As percentage
-cv(x, proportion = FALSE)
-
-}
 \keyword{internal}

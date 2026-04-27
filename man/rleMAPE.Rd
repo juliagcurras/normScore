@@ -2,59 +2,23 @@
 % Please edit documentation in R/utils.R
 \name{rleMAPE}
 \alias{rleMAPE}
-\title{Compute an RLE-based MAPE metric across samples}
+\title{Compute RLE-based MAPE metric}
 \usage{
 rleMAPE(data)
 }
 \arguments{
-\item{data}{A numeric matrix-like object with features in rows and samples
-in columns. Missing values (\code{NA}) are allowed.}
+\item{data}{A matrix or data frame with proteins in rows and samples in
+columns, typically in log-scale.}
 }
 \value{
-A single numeric value corresponding to the final RLE-based MAPE
-metric.
+A single numeric value representing the RLE-based MAPE metric, where
+lower values indicate better normalization performance.
 }
 \description{
-Calculates a sample-level metric based on Relative Log Expression (RLE)
-transformed values and mean absolute percentage error (MAPE). For each row,
-the row median is subtracted from the original values, the result is
-back-transformed with \code{2^x}, and sample-wise quartiles are computed.
-The final metric is the sum of:
-\itemize{
-\item MAPE between 1 and the sample medians
-\item MAPE between the median of first quartiles and each sample first quartile
-\item MAPE between the median of third quartiles and each sample third quartile
-}
-}
-\details{
-Lower values indicate greater similarity across samples after RLE-based
-centering.
-
-The function performs the following steps:
-\enumerate{
-\item Computes the row-wise medians.
-\item Centers each row by subtracting its median.
-\item Applies back-transformation using \code{2^x}.
-\item Computes sample-wise first quartile, median, and third quartile.
-\item Combines three MAPE terms into a final summary metric.
-}
-
-This function assumes that a compatible \code{mape()} function is available in the
-package namespace.
-}
-\examples{
-mat <- matrix(
-  c(1, 2, 3,
-    2, 3, 4,
-    5, 6, 7),
-  nrow = 3,
-  byrow = TRUE
-)
-
-rleMAPE(mat)
-
-}
-\seealso{
-\code{\link{mape}}
+Computes a normScore item based on Relative Log Expression (RLE). The data
+are centered by protein medians and transformed to linear scale. The metric
+is then calculated as the sum of mean absolute percentage errors (MAPE)
+comparing sample medians and interquartile values to their expected
+references.
 }
 \keyword{internal}

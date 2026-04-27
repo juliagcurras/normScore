@@ -32,12 +32,12 @@ a given range.
 The predicted line is defined by its intercept and slope, while the expected
 line is assumed to be horizontal at \code{intExpected}. The function calculates
 the absolute area between both lines across the interval
- and normalizes it by the interval width.
+from \code{minRange} to \code{maxRange} and normalizes it by the interval width.
 }
 \details{
 The function first shifts the predicted intercept so that the expected line
 is centered at 0. It then determines whether the predicted line crosses the
-expected line within the interval .
+expected line within the interval from \code{minRange} to \code{maxRange}.
 
 If the crossing point lies within the interval, the area is computed as the
 sum of the two signed sub-areas on either side of the intersection.
@@ -49,24 +49,5 @@ The final area metric is normalized by dividing by:
 \deqn{maxRange - minRange}
 
 If \code{coefPred = 0}, the function returns \code{0}.
-}
-\examples{
-# Predicted line crosses the expected line within the range
-diffAreas(
-  intPred = 2,
-  coefPred = -0.5,
-  minRange = 0,
-  maxRange = 10
-)
-
-# Expected line different from 0
-diffAreas(
-  intPred = 3,
-  coefPred = 0.2,
-  minRange = 1,
-  maxRange = 8,
-  intExpected = 1
-)
-
 }
 \keyword{internal}

@@ -40,29 +40,6 @@ The function performs the following steps:
 Higher values indicate greater relative variability across samples within
 groups.
 }
-\examples{
-# Example structure only
-dataExample <- data.frame(
-  S1 = c(10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-           20, 21, 22, 23, 24, 25, 26, 27, 28, 29),
-  S2 = c(10.5, 11.5, 11.8, 13.2, 14.1, 15.3, 15.7, 17.4, 18.2, 19.1,
-           20.1, 21.2, 21.8, 23.1, 24.0, 25.2, 26.1, 27.1, 28.2, 29.0),
-  S3 = c(13.5, 14.0, 14.2, 15.8, 16.4, 17.1, 17.8, 18.9, 19.5, 20.2,
-           21.0, 21.8, 22.5, 23.7, 24.6, 25.4, 26.5, 27.4, 28.5, 29.4),
-  S4 = c(14.5, 14.3, 14.8, 16.0, 16.6, 17.3, 18.0, 19.0, 19.6, 20.3,
-           21.1, 21.9, 22.6, 23.8, 24.7, 25.5, 26.6, 27.5, 28.6, 29.5)
-)
-
-groupDataExample <- data.frame(
-  Samples = c("S1", "S2", "S3", "S4"),
-  Groups = c("A", "A", "B", "B")
-)
-groups <- c("A", "B")
-
-# Requires groupProteinCV() to be available
-getPCV(dataExample, groups, groupDataExample)
-
-}
 \seealso{
 \code{\link{groupProteinCV}}
 }

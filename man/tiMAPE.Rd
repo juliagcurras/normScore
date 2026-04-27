@@ -42,16 +42,6 @@ Note that if the global median of \code{q1}, \code{sampleMedians}, or \code{q3} 
 0, the corresponding MAPE value may be undefined and produce \code{Inf}, \code{NaN},
 or unstable results.
 }
-\examples{
-dataExample <- data.frame(
-  Sample1 = c(10, 20, 30, 40, 50),
-  Sample2 = c(11, 19, 29, 41, 49),
-  Sample3 = c(12, 21, 28, 42, 48)
-)
-
-tiMAPE(dataExample)
-
-}
 \seealso{
 \code{\link{mape}}
 }

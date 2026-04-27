@@ -40,16 +40,6 @@ horizontality is assessed.
 A value of 0 indicates a perfectly horizontal fitted trend. Larger values
 indicate stronger deviation from horizontality.
 }
-\examples{
-dataExample <- data.frame(
-  Sample1 = c(10, 20, 30, 40),
-  Sample2 = c(12, 19, 29, 41),
-  Sample3 = c(11, 21, 31, 39)
-)
-
-meanSDdiffArea(dataExample)
-
-}
 \seealso{
 \code{\link{diffAreas}}
 }

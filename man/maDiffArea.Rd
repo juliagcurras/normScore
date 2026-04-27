@@ -62,25 +62,6 @@ Note that the function assumes that lower variability in \code{logFC} is expecte
 at higher average expression values, and penalizes departures from this
 pattern through the shape correction factor.
 }
-\examples{
-dataExample <- data.frame(
-  G1_1 = c(10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-           20, 21, 22, 23, 24, 25, 26, 27, 28, 29),
-  G1_2 = c(10.5, 11.5, 11.8, 13.2, 14.1, 15.3, 15.7, 17.4, 18.2, 19.1,
-           20.1, 21.2, 21.8, 23.1, 24.0, 25.2, 26.1, 27.1, 28.2, 29.0),
-  G2_1 = c(13.5, 14.0, 14.2, 15.8, 16.4, 17.1, 17.8, 18.9, 19.5, 20.2,
-           21.0, 21.8, 22.5, 23.7, 24.6, 25.4, 26.5, 27.4, 28.5, 29.4),
-  G2_2 = c(14.5, 14.3, 14.8, 16.0, 16.6, 17.3, 18.0, 19.0, 19.6, 20.3,
-           21.1, 21.9, 22.6, 23.8, 24.7, 25.5, 26.6, 27.5, 28.6, 29.5)
-)
-
-maDiffArea(
-  data = dataExample,
-  samplesG1 = c("G1_1", "G1_2"),
-  samplesG2 = c("G2_1", "G2_2")
-)
-
-}
 \seealso{
 \code{\link{diffAreas}}
 }

@@ -90,7 +90,7 @@ result <- normScore(
   normalizedDataList = normalizedDataList,
   groupData = simData$metadata,
   rawData = simData$rawData,
-  onlyFinalRanking = FALSE,
+  returnDetails = FALSE,
   nBoot = 50
 )
 ```
@@ -148,7 +148,7 @@ This output contains:
 The bootstrap summary can also be visualized directly:
 
 ```{r}
-result$graphic
+plotBootstrapNormScore(result)
 ```
 
 ## Notes on the scoring framework

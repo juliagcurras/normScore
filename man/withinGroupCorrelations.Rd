@@ -42,24 +42,4 @@ The function performs the following steps:
 Missing values are handled using \code{use = "complete.obs"} in
 \code{\link[stats]{cor}}.
 }
-\examples{
-dataExample <- data.frame(
-  Sample1 = c(10, 20, 30, 40),
-  Sample2 = c(11, 21, 29, 39),
-  Sample3 = c(15, 18, 35, 45),
-  Sample4 = c(14, 19, 34, 44)
-)
-
-groupDataExample <- data.frame(
-  Samples = c("Sample1", "Sample2", "Sample3", "Sample4"),
-  Groups = c("A", "A", "B", "B")
-)
-
-withinGroupCorrelations(
-  data = dataExample,
-  groupData = groupDataExample,
-  method = "pearson"
-)
-
-}
 \keyword{internal}

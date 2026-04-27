@@ -325,6 +325,125 @@ test_that("meanSDdiffArea matches the manually computed expected value", {
 
 
 
+# maDiffArea function ####
+test_that("maDiffArea returns a single numeric value", {
+  set.seed(123)
+  
+  data <- matrix(
+    rnorm(120 * 6, mean = 20, sd = 2),
+    nrow = 120,
+    ncol = 6,
+    dimnames = list(
+      paste0("P", 1:120),
+      paste0("S", 1:6)
+    )
+  )
+  
+  result <- maDiffArea(
+    data = data,
+    samplesG1 = c("S1", "S2", "S3"),
+    samplesG2 = c("S4", "S5", "S6")
+  )
+  
+  expect_type(result, "double")
+  expect_length(result, 1)
+  expect_false(is.na(result))
+})
+
+
+test_that("maDiffArea is close to zero when groups have the same values", {
+  set.seed(123)
+  
+  groupValues <- matrix(
+    rnorm(120 * 3, mean = 20, sd = 2),
+    nrow = 120,
+    ncol = 3
+  )
+  
+  data <- cbind(groupValues, groupValues+rnorm(120 * 3, mean = 0, sd = 0.00001))
+  colnames(data) <- paste0("S", 1:6)
+  rownames(data) <- paste0("P", 1:120)
+  
+  result <- maDiffArea(
+    data = data,
+    samplesG1 = c("S1", "S2", "S3"),
+    samplesG2 = c("S4", "S5", "S6")
+  )
+  
+  expect_lt(result, 1e-6)
+})
+
+
+test_that("maDiffArea returns a larger value when groups differ with intensity", {
+  set.seed(123)
+  
+  baseData <- matrix(
+    rnorm(120 * 3, mean = 20, sd = 2),
+    nrow = 120,
+    ncol = 3
+  )
+  
+  intensityEffect <- seq(0, 3, length.out = 120)
+  
+  dataSame <- cbind(baseData, baseData+rnorm(120 * 3, mean = 0, sd = 0.00001))
+  
+  dataBiased <- cbind(
+    baseData,
+    sweep(baseData, 1, intensityEffect, "+")
+  )
+  
+  colnames(dataSame) <- colnames(dataBiased) <- paste0("S", 1:6)
+  rownames(dataSame) <- rownames(dataBiased) <- paste0("P", 1:120)
+  
+  resultSame <- maDiffArea(
+    data = dataSame,
+    samplesG1 = c("S1", "S2", "S3"),
+    samplesG2 = c("S4", "S5", "S6")
+  )
+  
+  resultBiased <- maDiffArea(
+    data = dataBiased,
+    samplesG1 = c("S1", "S2", "S3"),
+    samplesG2 = c("S4", "S5", "S6")
+  )
+  
+  expect_gt(resultBiased, resultSame)
+})
+
+
+test_that("maDiffArea handles missing values", {
+  set.seed(123)
+  
+  data <- matrix(
+    rnorm(120 * 6, mean = 20, sd = 2),
+    nrow = 120,
+    ncol = 6,
+    dimnames = list(
+      paste0("P", 1:120),
+      paste0("S", 1:6)
+    )
+  )
+  
+  data[1:5, 1] <- NA
+  
+  result <- maDiffArea(
+    data = data,
+    samplesG1 = c("S1", "S2", "S3"),
+    samplesG2 = c("S4", "S5", "S6")
+  )
+  
+  expect_type(result, "double")
+  expect_length(result, 1)
+  expect_false(is.na(result))
+})
+
+
+
+
+
+
+
+
 # getPCV function ####
 test_that("getPCV returns the mean CV for each group", {
   dataExample <- data.frame(
@@ -515,6 +634,42 @@ test_that("withinGroupCorrelations output change for different methods", {
 
 
 
+# computeCorrelation ####
+test_that("computeCorrelation returns one named numeric value per normalization", {
+  groupData <- data.frame(
+    Samples = paste0("S", 1:6),
+    Groups = rep(c("A", "B"), each = 3)
+  )
+  
+  set.seed(123)
+  baseData <- matrix(
+    rnorm(120 * 6, mean = 20, sd = 2),
+    nrow = 120,
+    ncol = 6,
+    dimnames = list(paste0("P", 1:120), groupData$Samples)
+  )
+  
+  normalizedDataList <- list(
+    Norm1 = baseData,
+    Norm2 = baseData + 1,
+    Norm3 = baseData * 1.1
+  )
+  
+  result <- computeCorrelation(
+    normalizedDataList = normalizedDataList,
+    groupData = groupData,
+    method = "spearman"
+  )
+  
+  expect_type(result, "double")
+  expect_equal(length(result), length(normalizedDataList))
+  expect_named(result, names(normalizedDataList))
+  expect_false(anyNA(result))
+})
+
+
+
+
 
 # bootstrapRowScores ####
 test_that("bootstrapRowScores returns column sums for the resampled rows", {
@@ -561,122 +716,6 @@ test_that("bootstrapRowScores returns one value per column", {
   expect_type(result, "double")
   expect_length(result, ncol(dataExample))
 })
-
-
-
-
-
-# computeBootstrapNormScore  ####
-test_that("computeBootstrapNormScore returns a data frame with the expected columns", {
-  set.seed(123)
-  
-  scoreMatrix <- matrix(
-    c(0.2, 0.3, 0.1,
-      0.4, 0.2, 0.3,
-      0.1, 0.5, 0.2),
-    nrow = 3,
-    byrow = TRUE
-  )
-  
-  colnames(scoreMatrix) <- c("Norm1", "Norm2", "Norm3")
-  
-  result <- computeBootstrapNormScore(scoreMatrix, nBoot = 20)
-  
-  expect_s3_class(result, "data.frame")
-  expect_equal(
-    colnames(result),
-    c("normalization", "meanNormScore", "ll95", "ul95")
-  )
-})
-
-test_that("computeBootstrapNormScore returns one row per normalization method", {
-  set.seed(123)
-  
-  scoreMatrix <- matrix(
-    c(0.2, 0.3, 0.1,
-      0.4, 0.2, 0.3,
-      0.1, 0.5, 0.2),
-    nrow = 3,
-    byrow = TRUE
-  )
-  
-  colnames(scoreMatrix) <- c("Norm1", "Norm2", "Norm3")
-  
-  result <- computeBootstrapNormScore(scoreMatrix, nBoot = 20)
-  
-  expect_equal(nrow(result), ncol(scoreMatrix))
-  expect_equal(sort(result$normalization), sort(colnames(scoreMatrix)))
-})
-
-test_that("computeBootstrapNormScore returns results sorted by meanNormScore", {
-  set.seed(123)
-  
-  scoreMatrix <- matrix(
-    c(0.2, 0.3, 0.1,
-      0.4, 0.2, 0.3,
-      0.1, 0.5, 0.2),
-    nrow = 3,
-    byrow = TRUE
-  )
-  
-  colnames(scoreMatrix) <- c("Norm1", "Norm2", "Norm3")
-  
-  result <- computeBootstrapNormScore(scoreMatrix, nBoot = 20)
-  
-  expect_true(all(diff(result$meanNormScore) >= 0))
-})
-
-
-
-
-
-
-# plotBootstrapNormScore  ####
-
-test_that("plotBootstrapNormScore returns a ggplot object", {
-  bootstrapScores <- data.frame(
-    normalization = c("Norm1", "Norm2", "Norm3"),
-    meanNormScore = c(0.25, 0.40, 0.32),
-    ll95 = c(0.20, 0.35, 0.28),
-    ul95 = c(0.30, 0.45, 0.36)
-  )
-  
-  result <- plotBootstrapNormScore(bootstrapScores)
-  
-  expect_s3_class(result, "ggplot")
-})
-
-test_that("plotBootstrapNormScore works when input column names differ", {
-  bootstrapScores <- data.frame(
-    A = c("Norm1", "Norm2", "Norm3"),
-    B = c(0.25, 0.40, 0.32),
-    C = c(0.20, 0.35, 0.28),
-    D = c(0.30, 0.45, 0.36)
-  )
-  
-  result <- plotBootstrapNormScore(bootstrapScores)
-  
-  expect_s3_class(result, "ggplot")
-})
-
-test_that("plotBootstrapNormScore keeps the expected axis labels", {
-  bootstrapScores <- data.frame(
-    normalization = c("Norm1", "Norm2", "Norm3"),
-    meanNormScore = c(0.25, 0.40, 0.32),
-    ll95 = c(0.20, 0.35, 0.28),
-    ul95 = c(0.30, 0.45, 0.36)
-  )
-  
-  result <- plotBootstrapNormScore(bootstrapScores)
-  
-  expect_equal(result$labels$x, "Mean normScore [95% CI]")
-  expect_equal(result$labels$y, "Normalization")
-})
-
-
-
-
-
 
 
 

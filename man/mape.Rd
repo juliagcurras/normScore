@@ -34,15 +34,4 @@ If \code{proportion = FALSE}, the result is multiplied by 100.
 Note that this metric is undefined when any value in \code{actual} is equal to 0.
 In such cases, the function may return \code{Inf} or \code{NaN}.
 }
-\examples{
-actual <- c(100, 200, 300, 400)
-predicted <- c(110, 190, 320, 390)
-
-# As percentage
-mape(actual, predicted)
-
-# As proportion
-mape(actual, predicted, proportion = TRUE)
-
-}
 \keyword{internal}

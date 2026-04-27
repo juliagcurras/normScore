@@ -189,7 +189,7 @@ items and to improve the stability and interpretability of the final ranking.
 
 ## Bootstrap summary
 
-When `onlyFinalRanking = FALSE`, `normScore()` also performs bootstrap
+When `returnDetails = FALSE`, `normScore()` also performs bootstrap
 resampling over the six item scores.
 
 This produces:

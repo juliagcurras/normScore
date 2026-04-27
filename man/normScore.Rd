@@ -10,7 +10,7 @@ normScore(
   rawData,
   refGroup = NULL,
   altGroup = NULL,
-  onlyFinalRanking = TRUE,
+  returnDetails = TRUE,
   nBoot = 1000
 )
 }
@@ -32,7 +32,7 @@ metric. If \code{NULL}, the last group in \code{groupData} is used.}
 \item{altGroup}{\code{character} or \code{NULL}. Alternative group used for the MA-plot
 metric. If \code{NULL}, the first group in \code{groupData} is used.}
 
-\item{onlyFinalRanking}{\code{logical}. If \code{TRUE}, only the final ranking is
+\item{returnDetails}{\code{logical}. If \code{TRUE}, only the final ranking is
 returned. If \code{FALSE}, detailed scores, bootstrap results, and a summary
 plot are also returned. Default is \code{FALSE}.}
 
@@ -40,12 +40,12 @@ plot are also returned. Default is \code{FALSE}.}
 normScore values and confidence intervals. Default is \code{1000}.}
 }
 \value{
-If \code{onlyFinalRanking = TRUE}, returns a list with:
+If \code{returnDetails = TRUE}, returns a list with:
 \describe{
 \item{finalRanking}{Named numeric vector with the final normalization ranking.}
 }
 
-If \code{onlyFinalRanking = FALSE}, returns a list with:
+If \code{returnDetails = FALSE}, returns a list with:
 \describe{
 \item{finalRanking}{Named numeric vector with the final normalization ranking.}
 \item{detailRanking}{\code{data.frame} with scaled item-wise scores, total score,
@@ -75,16 +75,16 @@ and percentile-based confidence intervals.
 The function computes the following six item scores for each normalization
 method:
 \enumerate{
-\item \strong{PCV}: mean pooled coefficient of variation across groups.
-\item \strong{Correlation}: within-group Spearman correlation summary,
-transformed so that lower values indicate better performance.
-\item \strong{MAplot}: shape-corrected area-based deviation from the
-expected MA trend (\code{logFC = 0}).
-\item \strong{MeanSDplot}: area-based deviation of the mean-SD trend from
-horizontality.
-\item \strong{RLEplot}: RLE-based mean absolute percentage error relative
+\item \strong{Item1}: mean pooled coefficient of variation across groups (PVC).
+\item \strong{Item2}: within-group Spearman correlation summary,
+transformed so that lower values indicate better performance (Correlation).
+\item \strong{Item3}: shape-corrected area-based deviation from the
+expected MA trend (\code{logFC = 0}), based on MAplot.
+\item \strong{Item4}: area-based deviation of the mean-SD trend from
+horizontality, based on meanSD plot.
+\item \strong{Item5}: RLE-based mean absolute percentage error relative
 to 1.
-\item \strong{totalIntensity}: quantile-based total intensity consistency
+\item \strong{Item6}: quantile-based total intensity consistency
 metric.
 }
 
@@ -94,13 +94,9 @@ into a total score. Lower scores indicate better normalization performance.
 A correction factor based on the coefficient of variation of total raw sample
 intensities is applied only to the normalization method named \code{"Log"}.
 
-In addition, the correlation item is downweighted for all methods except
-\code{"CyclicLoess"} to account for its lower discrimination power in this scoring
-framework.
-
-When \code{onlyFinalRanking = FALSE}, bootstrap resampling of the six item scores
-is performed using \code{\link{computeBootstrapNormScore}}, and the results
-are visualized with \code{\link{plotBootstrapNormScore}}.
+When \code{returnDetails = FALSE}, bootstrap resampling of the six item scores
+is performed using \code{\link{computeBootstrapNormScore}}.
+The results can be visualized using \code{\link{plotBootstrapNormScore}}.
 }
 \examples{
 # Minimal example structure
@@ -110,36 +106,36 @@ simData <- simulateData(nProteins = 1000)
 
 # Normalyze ysing NormalyzerDE package
 normalizedDataList <- list(
-  Median = NormalyzerDE::medianNormalization(simData$rawData),
-  Mean = NormalyzerDE::meanNormalization(simData$rawData),
-  TI = NormalyzerDE::globalIntensityNormalization(simData$rawData),
-  Quantile =  NormalyzerDE::performQuantileNormalization(simData$rawData),
-  CyclicLoess = NormalyzerDE::performCyclicLoessNormalization(simData$rawData),
-  VSN =  NormalyzerDE::performVSNNormalization(simData$rawData),
-  RLR =  NormalyzerDE::performGlobalRLRNormalization(simData$rawData)
+  Norm1 = simData$logData + 0.1,
+  Norm2 = simData$logData + 1,
+  Norm3 = simData$logData - 1,
+  Norm4 = simData$logData * 1.1,
+  Norm5 = simData$logData * 0.9,
+  Norm6 = simData$logData * runif(ncol(simData$logData), 0.8, 1.2)
 )
 
 # Compute ranking
-normScore(
+result <- normScore(
   normalizedDataList,
   groupData = simData$metadata,
   rawData = simData$rawData,
   refGroup = NULL,
   altGroup = NULL,
-  onlyFinalRanking = FALSE,
+  returnDetails = FALSE,
   nBoot = 100
  ) 
+ result
+ 
+ # Plot bootstrap score
+ plotBootstrapNormScore(result)
 
 
 }
 \seealso{
-\code{\link{addLogIfMissing}},
-\code{\link{getPCV}},
-\code{\link{withinGroupCorrelations}},
-\code{\link{maDiffArea}},
-\code{\link{meanSDdiffArea}},
-\code{\link{rleMAPE}},
-\code{\link{tiMAPE}},
+\code{\link{validateNormScoreInput}},
+\code{\link{computeNormScoreItems}},
+\code{\link{scaleNormScoreItems}},
+\code{\link{rankNormScoreItems}},
 \code{\link{computeBootstrapNormScore}},
 \code{\link{plotBootstrapNormScore}}
 }

@@ -35,16 +35,4 @@ The function performs the following steps:
 This function is typically used as a statistic function inside bootstrap
 procedures.
 }
-\examples{
-dataExample <- data.frame(
-  Norm1 = c(1.2, 0.8, 1.1, 0.9),
-  Norm2 = c(1.0, 0.7, 1.3, 1.1),
-  Norm3 = c(0.9, 0.6, 1.2, 1.0)
-)
-
-indicesExample <- c(1, 2, 2, 4)
-
-bootstrapRowScores(dataExample, indicesExample)
-
-}
 \keyword{internal}
