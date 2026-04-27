@@ -54,16 +54,16 @@
 #' The function computes the following six item scores for each normalization
 #' method:
 #' \enumerate{
-#'   \item \strong{PCV}: mean pooled coefficient of variation across groups.
-#'   \item \strong{Correlation}: within-group Spearman correlation summary,
-#'   transformed so that lower values indicate better performance.
-#'   \item \strong{MAplot}: shape-corrected area-based deviation from the
-#'   expected MA trend (`logFC = 0`).
-#'   \item \strong{MeanSDplot}: area-based deviation of the mean-SD trend from
-#'   horizontality.
-#'   \item \strong{RLEplot}: RLE-based mean absolute percentage error relative
+#'   \item \strong{Item1}: mean pooled coefficient of variation across groups (PVC).
+#'   \item \strong{Item2}: within-group Spearman correlation summary,
+#'   transformed so that lower values indicate better performance (Correlation).
+#'   \item \strong{Item3}: shape-corrected area-based deviation from the
+#'   expected MA trend (`logFC = 0`), based on MAplot.
+#'   \item \strong{Item4}: area-based deviation of the mean-SD trend from
+#'   horizontality, based on meanSD plot.
+#'   \item \strong{Item5}: RLE-based mean absolute percentage error relative
 #'   to 1.
-#'   \item \strong{totalIntensity}: quantile-based total intensity consistency
+#'   \item \strong{Item6}: quantile-based total intensity consistency
 #'   metric.
 #' }
 #'
@@ -73,13 +73,9 @@
 #' A correction factor based on the coefficient of variation of total raw sample
 #' intensities is applied only to the normalization method named `"Log"`.
 #'
-#' In addition, the correlation item is downweighted for all methods except
-#' `"CyclicLoess"` to account for its lower discrimination power in this scoring
-#' framework.
-#'
 #' When `returnDetails = FALSE`, bootstrap resampling of the six item scores
-#' is performed using \code{\link{computeBootstrapNormScore}}, and the results
-#' are visualized with \code{\link{plotBootstrapNormScore}}.
+#' is performed using \code{\link{computeBootstrapNormScore}}. 
+#' The results can be visualized using \code{\link{plotBootstrapNormScore}}.
 #'
 #' @examples
 #' # Minimal example structure
@@ -89,17 +85,16 @@
 #' 
 #' # Normalyze ysing NormalyzerDE package
 #' normalizedDataList <- list(
-#'   Median = NormalyzerDE::medianNormalization(simData$rawData),
-#'   Mean = NormalyzerDE::meanNormalization(simData$rawData),
-#'   TI = NormalyzerDE::globalIntensityNormalization(simData$rawData),
-#'   Quantile =  NormalyzerDE::performQuantileNormalization(simData$rawData),
-#'   CyclicLoess = NormalyzerDE::performCyclicLoessNormalization(simData$rawData),
-#'   VSN =  NormalyzerDE::performVSNNormalization(simData$rawData),
-#'   RLR =  NormalyzerDE::performGlobalRLRNormalization(simData$rawData)
+#'   Norm1 = simData$logData + 0.1,
+#'   Norm2 = simData$logData + 1,
+#'   Norm3 = simData$logData - 1,
+#'   Norm4 = simData$logData * 1.1,
+#'   Norm5 = simData$logData * 0.9,
+#'   Norm6 = simData$logData * runif(ncol(simData$logData), 0.8, 1.2)
 #' )
 #' 
 #' # Compute ranking
-#' normScore(
+#' result <- normScore(
 #'   normalizedDataList,
 #'   groupData = simData$metadata,
 #'   rawData = simData$rawData,
@@ -108,21 +103,21 @@
 #'   returnDetails = FALSE,
 #'   nBoot = 100
 #'  ) 
+#'  result
+#'  
+#'  # Plot bootstrap score
+#'  plotBootstrapNormScore(result)
 #' 
 #'
 #' @seealso
-#' \code{\link{addLogIfMissing}},
-#' \code{\link{getPCV}},
-#' \code{\link{withinGroupCorrelations}},
-#' \code{\link{maDiffArea}},
-#' \code{\link{meanSDdiffArea}},
-#' \code{\link{rleMAPE}},
-#' \code{\link{tiMAPE}},
+#' \code{\link{validateNormScoreInput}},
+#' \code{\link{computeNormScoreItems}},
+#' \code{\link{scaleNormScoreItems}},
+#' \code{\link{rankNormScoreItems}},
 #' \code{\link{computeBootstrapNormScore}},
 #' \code{\link{plotBootstrapNormScore}}
 #'
 #' @export
-
 
 normScore <- function(
     normalizedDataList,
@@ -133,175 +128,67 @@ normScore <- function(
     returnDetails = TRUE,
     nBoot = 1000
 ) {
-  # Input:
-  # 1. List of normalized matrices (normalizedDataList)
-  # 2. Sample-group annotation table (groupData)
-  # 3. Raw intensities (rawData) for item 0
-  # 4. Reference and alternative groups for MA metric (optional)
-  # 5. Whether to return only the final ranking
-  # 6. Number of bootstrap resamples
   
   #----- Initial checks ####
-  
-  groupData <- as.data.frame(groupData)
-  colnames(groupData) <- c("Samples", "Groups")
-  
-  groupLevels <- levels(as.factor(groupData$Groups))
-  scoreList <- list()
-  
-  if(nrow(rawData) < 100){
-    stop("A minimum of 100 proteins is required for normalization assessment")
-  }
-  
-  normalizedDataList <- addLogIfMissing(
+  inputs <- validateNormScoreInput(
     normalizedDataList = normalizedDataList,
-    rawData = rawData
-  )
-  
-  
-  #----- ITEM 0 - correction factor ####
-  totalIntensities <- colSums(rawData, na.rm = TRUE)
-  item0 <- cv(totalIntensities, proportion = TRUE, na.rm = TRUE) * 3
-  
-  #----- ITEM 1 - PCV ####
-  dfPCV <- data.frame(
-    lapply(
-      normalizedDataList,
-      getPCV,
-      groups = groupLevels,
-      groupData = groupData
-    )
-  )
-  
-  dfPCV <- as.data.frame(t(dfPCV))
-  dfPCV$PCV <- apply(dfPCV, 1, mean, na.rm = TRUE)
-  item1 <- stats::setNames(dfPCV$PCV, rownames(dfPCV))
-  
-  scoreList[["PCV"]] <- item1
-  
-  #----- ITEM 2 - Correlation (Spearman) ####
-  dfCor <- sapply(
-    normalizedDataList,
-    withinGroupCorrelations,
     groupData = groupData,
-    method = "spearman", 
-    simplify = T, 
-    USE.NAMES = T
+    rawData = rawData,
+    refGroup = refGroup,
+    altGroup = altGroup,
+    returnDetails = returnDetails,
+    nBoot = nBoot
   )
   
-  item2 <- sapply(
-    colnames(dfCor),
-    function(normalizationName) {
-      correlationValues <- dfCor[, normalizationName]
-      
-      # Use 1 - statistic so that lower values consistently indicate better performance
-      1 - (stats::median(correlationValues, na.rm = TRUE) - stats::IQR(correlationValues, na.rm = TRUE) / 3)
-    },
-    simplify = TRUE,
-    USE.NAMES = TRUE
+  
+  #----- Item 0 as correction factor ####
+  item0 <- cv(
+    x = colSums(rawData, na.rm = TRUE), 
+    proportion = TRUE, na.rm = TRUE
+  ) * 4 # Correction factor
+  
+  
+  #----- Compute items ####
+  scoreDF <- computeNormScoreItems(
+    normalizedDataList = inputs$normalizedDataList,
+    groupData = inputs$groupData,
+    rawData = inputs$rawData,
+    refGroup = inputs$refGroup,
+    altGroup = inputs$altGroup, 
+    singleGroup = inputs$singleGroup
   )
   
-  scoreList[["Correlation"]] <- item2
   
-  #----- ITEM 3 - MA plot regression line vs expected 0 ####
-  if (is.null(refGroup)) {
-    refGroup <- groupLevels[length(groupLevels)]
-  }
+  #----- Scaled items ####
+  scaledScoreDF <- scaleNormScoreItems(scoreDF)
   
-  if (is.null(altGroup)) {
-    altGroup <- groupLevels[1]
-  }
   
-  samplesG1 <- groupData[groupData$Groups == refGroup, "Samples"]
-  samplesG2 <- groupData[groupData$Groups == altGroup, "Samples"]
+  #----- Aggregate items, correct total and rank ####
+  rankedScoreDF <- rankNormScoreItems(scaledScoreDF, item0 = item0)
+  finalRanking <- stats::setNames(rankedScoreDF$TotalxItem0, rownames(rankedScoreDF))
   
-  item3 <- sapply(
-    normalizedDataList,
-    maDiffArea,
-    samplesG1 = samplesG1,
-    samplesG2 = samplesG2
-  )
-  
-  scoreList[["MAplot"]] <- item3
-  
-  #----- ITEM 4 - Mean-SD regression line slope deviation ####
-  item4 <- sapply(normalizedDataList, meanSDdiffArea)
-  scoreList[["MeanSDplot"]] <- item4
-  
-  #----- ITEM 5 - RLE: MAPE of sample medians (reference = 1) ####
-  item5 <- sapply(normalizedDataList, rleMAPE)
-  scoreList[["RLEplot"]] <- item5
-  
-  #----- ITEM 6 - Total intensity consistency ####
-  item6 <- sapply(normalizedDataList, tiMAPE)
-  scoreList[["totalIntensity"]] <- item6
-  
-  #----- Join all item scores ####
-  scoreDF <- dplyr::bind_cols(scoreList)
-  scoreDF <- as.data.frame(scoreDF)
-  rownames(scoreDF) <- names(scoreList[[1]])
-  
-  #----- Min-max scaling ####
-  scaledScoreDF <- apply(scoreDF, 2, function(columnValues) {
-    columnMin <- min(columnValues, na.rm = TRUE)
-    columnMax <- max(columnValues, na.rm = TRUE)
-    
-    if (columnMax == columnMin) {
-      return(rep(0, length(columnValues)))
-    }
-    
-    (columnValues - columnMin) / (columnMax - columnMin)
-  })
-  scaledScoreDF <- as.data.frame(scaledScoreDF)
-  rownames(scaledScoreDF) <- rownames(scoreDF)
-  
-  #----- Corrections ####
-  # Low discrimination power for item 2 (Correlation)
-  # scaledScoreDF[rownames(scaledScoreDF) != "CyclicLoess", 2] <-
-  #   scaledScoreDF[rownames(scaledScoreDF) != "CyclicLoess", 2] * 0.1
-  scaledScoreDF[, 2] <- scaledScoreDF[, 2] * 0.1
-  
-  #----- Final ranking ####
-  scaledScoreDF$Total <- rowSums(scaledScoreDF)
-  scaledScoreDF$TotalxItem0 <- scaledScoreDF$Total
-  
-  scaledScoreDF[rownames(scaledScoreDF) == "Log", "TotalxItem0"] <-
-    scaledScoreDF[rownames(scaledScoreDF) == "Log", "TotalxItem0"] * item0
-  
-  scaledScoreDF <- scaledScoreDF[order(scaledScoreDF$TotalxItem0), ]
-  
-  finalRanking <- stats::setNames(scaledScoreDF$TotalxItem0, rownames(scaledScoreDF))
-  names(scaledScoreDF) <- c(paste0("Item", 1:6), "Total", "TotalxItem0")
-  
-  if (returnDetails) {
+
+  #----- Return only finalRanking
+  if (inputs$returnDetails) {
     return(
       list(
         finalRanking = finalRanking
       )
     )
   } else {
-    #----- Bootstrap over item scores ####
-    scoreMatrix <- t(scaledScoreDF[, 1:6])
-    
-    if ("Log" %in% colnames(scoreMatrix)) {
-      scoreMatrix[, "Log"] <- scoreMatrix[, "Log"] * item0
-    }
-    
+    #----- Last output: Bootstrap over score items' 
     bootstrapScores <- computeBootstrapNormScore(
-      scoreMatrix = scoreMatrix,
-      nBoot = nBoot
+      rankedScoreDF = rankedScoreDF,
+      item0 = item0,
+      nBoot = inputs$nBoot
     )
     
-    bootstrapPlot <- plotBootstrapNormScore(
-      bootstrapScores = bootstrapScores
-    )
-    
+    #----- Return detailed results
     return(
       list(
         finalRanking = finalRanking,
-        detailRanking = scaledScoreDF,
-        bootstrapScore = bootstrapScores,
-        graphic = bootstrapPlot
+        detailRanking = rankedScoreDF,
+        bootstrapScore = bootstrapScores
       )
     )
   }

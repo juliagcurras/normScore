@@ -139,16 +139,9 @@ addLogIfMissing <- function(normalizedDataList, rawData, tolerance = 1e-8) {
 #' Note that if the mean of `x` is 0 or very close to 0, the result may be
 #' `Inf`, `NaN`, or unstable.
 #'
-#' @examples
-#' x <- c(10, 12, 9, 11, 10)
-#'
-#' # As proportion
-#' cv(x)
-#'
-#' # As percentage
-#' cv(x, proportion = FALSE)
 #'
 #' @keywords internal
+
 
 cv <- function(x, proportion =TRUE, na.rm = TRUE) {
   coeficiente <- (stats::sd(x, na.rm = na.rm) / mean(x, na.rm = na.rm))
@@ -191,18 +184,8 @@ cv <- function(x, proportion =TRUE, na.rm = TRUE) {
 #' Note that this metric is undefined when any value in `actual` is equal to 0.
 #' In such cases, the function may return `Inf` or `NaN`.
 #'
-#' @examples
-#' actual <- c(100, 200, 300, 400)
-#' predicted <- c(110, 190, 320, 390)
-#'
-#' # As percentage
-#' mape(actual, predicted)
-#'
-#' # As proportion
-#' mape(actual, predicted, proportion = TRUE)
-#'
-#' @export
 #' @keywords internal
+
 
 mape <- function(actual, predicted, proportion = FALSE){
   metric <- mean(abs((actual - predicted)/actual))
@@ -215,152 +198,19 @@ mape <- function(actual, predicted, proportion = FALSE){
 
 
 
-#' Mean Absolute Area Difference Between Predicted and Expected Lines
+#' Compute RLE-based MAPE metric
 #'
-#' @description
-#' Computes an area-based metric representing the average absolute difference
-#' between a predicted linear function and an expected horizontal line over
-#' a given range.
+#' Computes a normScore item based on Relative Log Expression (RLE). The data
+#' are centered by protein medians and transformed to linear scale. The metric
+#' is then calculated as the sum of mean absolute percentage errors (MAPE)
+#' comparing sample medians and interquartile values to their expected
+#' references.
 #'
-#' The predicted line is defined by its intercept and slope, while the expected
-#' line is assumed to be horizontal at `intExpected`. The function calculates
-#' the absolute area between both lines across the interval
-#' [`minRange`, `maxRange`] and normalizes it by the interval width.
+#' @param data A matrix or data frame with proteins in rows and samples in
+#'   columns, typically in log-scale.
 #'
-#' @param intPred `numeric`. Intercept of the predicted regression line.
-#' @param coefPred `numeric`. Slope of the predicted regression line.
-#' @param minRange `numeric`. Lower bound of the interval over which the area
-#'   difference is computed.
-#' @param maxRange `numeric`. Upper bound of the interval over which the area
-#'   difference is computed.
-#' @param intExpected `numeric`. Intercept of the expected horizontal line.
-#'   Default is `0`.
-#'
-#' @return
-#' A numeric value corresponding to the normalized absolute area difference
-#' between the predicted line and the expected line over the specified range.
-#'
-#' @details
-#' The function first shifts the predicted intercept so that the expected line
-#' is centered at 0. It then determines whether the predicted line crosses the
-#' expected line within the interval [`minRange`, `maxRange`].
-#'
-#' If the crossing point lies within the interval, the area is computed as the
-#' sum of the two signed sub-areas on either side of the intersection.
-#' If no crossing occurs within the interval, the area is computed directly over
-#' the full range.
-#'
-#' The final area metric is normalized by dividing by:
-#'
-#' \deqn{maxRange - minRange}
-#'
-#' If `coefPred = 0`, the function returns `0`.
-#'
-#' @examples
-#' # Predicted line crosses the expected line within the range
-#' diffAreas(
-#'   intPred = 2,
-#'   coefPred = -0.5,
-#'   minRange = 0,
-#'   maxRange = 10
-#' )
-#'
-#' # Expected line different from 0
-#' diffAreas(
-#'   intPred = 3,
-#'   coefPred = 0.2,
-#'   minRange = 1,
-#'   maxRange = 8,
-#'   intExpected = 1
-#' )
-#'
-#' @keywords internal
-
-diffAreas <- function(intPred, coefPred, minRange, maxRange, intExpected = 0){
-  
-  # # Moving regression lines to reach B=0, a=0
-  intPred <- intPred - intExpected
-  
-  if (coefPred < 0){
-    a = 1
-    b = -1
-  } else if (coefPred > 0){
-    a = -1
-    b = 1
-  } else if (coefPred == 0){
-    return(0)
-  }
-  
-  # Cutpoint regression line with expected line
-  cpX <- (-intPred)/coefPred
-  cpY <- 0
-  
-  # Is cutpoint located inside the range?
-  if (all(cpX >= minRange, cpX <= maxRange)){
-    area1 <- coefPred*a*(((minRange + (intPred/coefPred))^2)/2 - ((cpX + (intPred/coefPred))^2)/2)
-    area2 <- coefPred*b*(((cpX + (intPred/coefPred))^2)/2 - ((maxRange + (intPred/coefPred))^2)/2)
-    areaMetric <- abs(area1+area2)
-  } else if (any(cpX < minRange, cpX > maxRange)){
-    areaMetric <- abs(coefPred*(((maxRange + (intPred/coefPred))^2)/2 - ((minRange + (intPred/coefPred))^2)/2))
-  }
-  
-  areaMetric <- areaMetric/(maxRange-minRange)
-  return(areaMetric)
-} 
-
-
-
-
-
-
-#' Compute an RLE-based MAPE metric across samples
-#'
-#' Calculates a sample-level metric based on Relative Log Expression (RLE)
-#' transformed values and mean absolute percentage error (MAPE). For each row,
-#' the row median is subtracted from the original values, the result is
-#' back-transformed with `2^x`, and sample-wise quartiles are computed.
-#' The final metric is the sum of:
-#' \itemize{
-#'   \item MAPE between 1 and the sample medians
-#'   \item MAPE between the median of first quartiles and each sample first quartile
-#'   \item MAPE between the median of third quartiles and each sample third quartile
-#' }
-#'
-#' Lower values indicate greater similarity across samples after RLE-based
-#' centering.
-#'
-#' @param data A numeric matrix-like object with features in rows and samples
-#'   in columns. Missing values (`NA`) are allowed.
-#'
-#' @return A single numeric value corresponding to the final RLE-based MAPE
-#'   metric.
-#'
-#' @details
-#' The function performs the following steps:
-#' \enumerate{
-#'   \item Computes the row-wise medians.
-#'   \item Centers each row by subtracting its median.
-#'   \item Applies back-transformation using `2^x`.
-#'   \item Computes sample-wise first quartile, median, and third quartile.
-#'   \item Combines three MAPE terms into a final summary metric.
-#' }
-#'
-#' This function assumes that a compatible `mape()` function is available in the
-#' package namespace.
-#'
-#' @examples
-#' mat <- matrix(
-#'   c(1, 2, 3,
-#'     2, 3, 4,
-#'     5, 6, 7),
-#'   nrow = 3,
-#'   byrow = TRUE
-#' )
-#'
-#' rleMAPE(mat)
-#'
-#' @seealso
-#' \code{\link{mape}}
+#' @return A single numeric value representing the RLE-based MAPE metric, where
+#'   lower values indicate better normalization performance.
 #'
 #' @keywords internal
 
@@ -430,15 +280,6 @@ rleMAPE <- function(data) {
 #' 0, the corresponding MAPE value may be undefined and produce `Inf`, `NaN`,
 #' or unstable results.
 #'
-#' @examples
-#' dataExample <- data.frame(
-#'   Sample1 = c(10, 20, 30, 40, 50),
-#'   Sample2 = c(11, 19, 29, 41, 49),
-#'   Sample3 = c(12, 21, 28, 42, 48)
-#' )
-#'
-#' tiMAPE(dataExample)
-#'
 #' @seealso
 #' \code{\link{mape}}
 #'
@@ -456,6 +297,87 @@ tiMAPE <- function(data) {
     mape(actual = stats::median(q3), predicted = q3, proportion = TRUE)
   
   return(finalMetric)
+} 
+
+
+
+
+
+
+#' Mean Absolute Area Difference Between Predicted and Expected Lines
+#'
+#' @description
+#' Computes an area-based metric representing the average absolute difference
+#' between a predicted linear function and an expected horizontal line over
+#' a given range.
+#'
+#' The predicted line is defined by its intercept and slope, while the expected
+#' line is assumed to be horizontal at `intExpected`. The function calculates
+#' the absolute area between both lines across the interval
+#' from `minRange` to `maxRange` and normalizes it by the interval width.
+#'
+#' @param intPred `numeric`. Intercept of the predicted regression line.
+#' @param coefPred `numeric`. Slope of the predicted regression line.
+#' @param minRange `numeric`. Lower bound of the interval over which the area
+#'   difference is computed.
+#' @param maxRange `numeric`. Upper bound of the interval over which the area
+#'   difference is computed.
+#' @param intExpected `numeric`. Intercept of the expected horizontal line.
+#'   Default is `0`.
+#'
+#' @return
+#' A numeric value corresponding to the normalized absolute area difference
+#' between the predicted line and the expected line over the specified range.
+#'
+#' @details
+#' The function first shifts the predicted intercept so that the expected line
+#' is centered at 0. It then determines whether the predicted line crosses the
+#' expected line within the interval from `minRange` to `maxRange`.
+#'
+#' If the crossing point lies within the interval, the area is computed as the
+#' sum of the two signed sub-areas on either side of the intersection.
+#' If no crossing occurs within the interval, the area is computed directly over
+#' the full range.
+#'
+#' The final area metric is normalized by dividing by:
+#'
+#' \deqn{maxRange - minRange}
+#'
+#' If `coefPred = 0`, the function returns `0`.
+#'
+#'
+#' @keywords internal
+
+diffAreas <- function(intPred, coefPred, minRange, maxRange, intExpected = 0){
+  
+  # # Moving regression lines to reach B=0, a=0
+  intPred <- intPred - intExpected
+  
+  if (coefPred < 0){
+    a = 1
+    b = -1
+  } else if (coefPred > 0){
+    a = -1
+    b = 1
+  } else if (coefPred == 0){
+    return(0)
+  }
+  
+  # Cutpoint regression line with expected line
+  cpX <- (-intPred)/coefPred
+  cpY <- 0
+  
+  # Is cutpoint located inside the range?
+  if (all(cpX >= minRange, cpX <= maxRange)){
+    area1 <- coefPred*a*(((minRange + (intPred/coefPred))^2)/2 - ((cpX + (intPred/coefPred))^2)/2)
+    area2 <- coefPred*b*(((cpX + (intPred/coefPred))^2)/2 - ((maxRange + (intPred/coefPred))^2)/2)
+    areaMetric <- abs(area1+area2)
+  } else if (any(cpX < minRange, cpX > maxRange)){
+    areaMetric <- abs(coefPred*(((maxRange + (intPred/coefPred))^2)/2 - ((minRange + (intPred/coefPred))^2)/2))
+  }
+  
+  areaMetric <- areaMetric/(maxRange-minRange)
+  return(areaMetric)
 } 
 
 
@@ -498,14 +420,6 @@ tiMAPE <- function(data) {
 #' A value of 0 indicates a perfectly horizontal fitted trend. Larger values
 #' indicate stronger deviation from horizontality.
 #'
-#' @examples
-#' dataExample <- data.frame(
-#'   Sample1 = c(10, 20, 30, 40),
-#'   Sample2 = c(12, 19, 29, 41),
-#'   Sample3 = c(11, 21, 31, 39)
-#' )
-#'
-#' meanSDdiffArea(dataExample)
 #'
 #' @seealso
 #' \code{\link{diffAreas}}
@@ -599,23 +513,6 @@ meanSDdiffArea <- function(data) {
 #' at higher average expression values, and penalizes departures from this
 #' pattern through the shape correction factor.
 #'
-#' @examples
-#' dataExample <- data.frame(
-#'   G1_1 = c(10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-#'            20, 21, 22, 23, 24, 25, 26, 27, 28, 29),
-#'   G1_2 = c(10.5, 11.5, 11.8, 13.2, 14.1, 15.3, 15.7, 17.4, 18.2, 19.1,
-#'            20.1, 21.2, 21.8, 23.1, 24.0, 25.2, 26.1, 27.1, 28.2, 29.0),
-#'   G2_1 = c(13.5, 14.0, 14.2, 15.8, 16.4, 17.1, 17.8, 18.9, 19.5, 20.2,
-#'            21.0, 21.8, 22.5, 23.7, 24.6, 25.4, 26.5, 27.4, 28.5, 29.4),
-#'   G2_2 = c(14.5, 14.3, 14.8, 16.0, 16.6, 17.3, 18.0, 19.0, 19.6, 20.3,
-#'            21.1, 21.9, 22.6, 23.8, 24.7, 25.5, 26.6, 27.5, 28.6, 29.5)
-#' )
-#'
-#' maDiffArea(
-#'   data = dataExample,
-#'   samplesG1 = c("G1_1", "G1_2"),
-#'   samplesG2 = c("G2_1", "G2_2")
-#' )
 #'
 #' @seealso
 #' \code{\link{diffAreas}}
@@ -705,28 +602,6 @@ maDiffArea <- function(data, samplesG1, samplesG2) {
 #'
 #' The returned values are expressed as percentages.
 #'
-#' @examples
-#' dataExample <- data.frame(
-#'   S1 = c(10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-#'            20, 21, 22, 23, 24, 25, 26, 27, 28, 29),
-#'   S2 = c(10.5, 11.5, 11.8, 13.2, 14.1, 15.3, 15.7, 17.4, 18.2, 19.1,
-#'            20.1, 21.2, 21.8, 23.1, 24.0, 25.2, 26.1, 27.1, 28.2, 29.0),
-#'   S3 = c(13.5, 14.0, 14.2, 15.8, 16.4, 17.1, 17.8, 18.9, 19.5, 20.2,
-#'            21.0, 21.8, 22.5, 23.7, 24.6, 25.4, 26.5, 27.4, 28.5, 29.4),
-#'   S4 = c(14.5, 14.3, 14.8, 16.0, 16.6, 17.3, 18.0, 19.0, 19.6, 20.3,
-#'            21.1, 21.9, 22.6, 23.8, 24.7, 25.5, 26.6, 27.5, 28.6, 29.5)
-#' )
-#'
-#' groupDataExample <- data.frame(
-#'   Samples = c("S1", "S2", "S3", "S4"),
-#'   Groups = c("A", "A", "B", "B")
-#' )
-#'
-#' groupProteinCV(
-#'   group = "A",
-#'   groupData = groupDataExample,
-#'   data = dataExample
-#' )
 #'
 #' @seealso
 #' \code{\link{cv}}
@@ -781,27 +656,6 @@ groupProteinCV <- function(group, groupData, data) {
 #' Higher values indicate greater relative variability across samples within
 #' groups.
 #'
-#' @examples
-#' # Example structure only
-#' dataExample <- data.frame(
-#'   S1 = c(10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-#'            20, 21, 22, 23, 24, 25, 26, 27, 28, 29),
-#'   S2 = c(10.5, 11.5, 11.8, 13.2, 14.1, 15.3, 15.7, 17.4, 18.2, 19.1,
-#'            20.1, 21.2, 21.8, 23.1, 24.0, 25.2, 26.1, 27.1, 28.2, 29.0),
-#'   S3 = c(13.5, 14.0, 14.2, 15.8, 16.4, 17.1, 17.8, 18.9, 19.5, 20.2,
-#'            21.0, 21.8, 22.5, 23.7, 24.6, 25.4, 26.5, 27.4, 28.5, 29.4),
-#'   S4 = c(14.5, 14.3, 14.8, 16.0, 16.6, 17.3, 18.0, 19.0, 19.6, 20.3,
-#'            21.1, 21.9, 22.6, 23.8, 24.7, 25.5, 26.6, 27.5, 28.6, 29.5)
-#' )
-#'
-#' groupDataExample <- data.frame(
-#'   Samples = c("S1", "S2", "S3", "S4"),
-#'   Groups = c("A", "A", "B", "B")
-#' )
-#' groups <- c("A", "B")
-#'
-#' # Requires groupProteinCV() to be available
-#' getPCV(dataExample, groups, groupDataExample)
 #'
 #' @seealso
 #' \code{\link{groupProteinCV}}
@@ -818,7 +672,6 @@ getPCV <- function(data, groups, groupData){
   names(meanVal) <- colnames(groupDataProt)
   return(meanVal)
 } 
-
 
 
 
@@ -858,25 +711,6 @@ getPCV <- function(data, groups, groupData){
 #' Missing values are handled using `use = "complete.obs"` in
 #' \code{\link[stats]{cor}}.
 #'
-#' @examples
-#' dataExample <- data.frame(
-#'   Sample1 = c(10, 20, 30, 40),
-#'   Sample2 = c(11, 21, 29, 39),
-#'   Sample3 = c(15, 18, 35, 45),
-#'   Sample4 = c(14, 19, 34, 44)
-#' )
-#'
-#' groupDataExample <- data.frame(
-#'   Samples = c("Sample1", "Sample2", "Sample3", "Sample4"),
-#'   Groups = c("A", "A", "B", "B")
-#' )
-#'
-#' withinGroupCorrelations(
-#'   data = dataExample,
-#'   groupData = groupDataExample,
-#'   method = "pearson"
-#' )
-#'
 #' @keywords internal
 
 withinGroupCorrelations <- function(data, groupData, method = "spearman") {
@@ -899,6 +733,53 @@ withinGroupCorrelations <- function(data, groupData, method = "spearman") {
   })
   
   unlist(allCorrelations, use.names = FALSE)
+}
+
+
+
+
+
+
+#' Compute within-group correlation item
+#'
+#' Computes the normScore correlation item for each normalization method using
+#' within-group sample correlations. The item is summarized from the median and
+#' interquartile range of the correlation values, and transformed so that lower
+#' values indicate better performance.
+#'
+#' @param normalizedDataList A named list of normalized data matrices, with
+#'   proteins in rows and samples in columns.
+#' @param groupData A data frame containing sample-group annotation.
+#' @param method Character string indicating the correlation method passed to
+#'   `stats::cor()`, for example `"spearman"` or `"pearson"`.
+#'
+#' @return A named numeric vector with one correlation item score per
+#'   normalization method.
+#'
+#' @keywords internal
+
+
+computeCorrelation <- function(normalizedDataList, groupData, method)
+  {
+  dfCor <- sapply(
+    normalizedDataList,
+    withinGroupCorrelations,
+    groupData = groupData,
+    method = method, 
+    simplify = FALSE, 
+    USE.NAMES = TRUE
+  )
+  
+  sapply(
+    names(dfCor),
+    function(normalizationName) {
+      correlationValues <- dfCor[[normalizationName]]
+      1 - (stats::median(correlationValues, na.rm = TRUE) - stats::IQR(correlationValues, na.rm = TRUE) / 3)
+    },
+    simplify = TRUE,
+    USE.NAMES = TRUE
+  )
+  
 }
 
 
@@ -934,17 +815,6 @@ withinGroupCorrelations <- function(data, groupData, method = "spearman") {
 #' This function is typically used as a statistic function inside bootstrap
 #' procedures.
 #'
-#' @examples
-#' dataExample <- data.frame(
-#'   Norm1 = c(1.2, 0.8, 1.1, 0.9),
-#'   Norm2 = c(1.0, 0.7, 1.3, 1.1),
-#'   Norm3 = c(0.9, 0.6, 1.2, 1.0)
-#' )
-#'
-#' indicesExample <- c(1, 2, 2, 4)
-#'
-#' bootstrapRowScores(dataExample, indicesExample)
-#'
 #' @keywords internal
 
 bootstrapRowScores <- function(data, indices) {
@@ -955,171 +825,3 @@ bootstrapRowScores <- function(data, indices) {
 
 
 
-
-
-
-#' Bootstrap Estimation of Normalization Scores
-#'
-#' @description
-#' Computes bootstrap-based mean scores and percentile confidence intervals
-#' for normalization methods from a matrix of item-wise scores.
-#'
-#' The function applies bootstrap resampling over rows of the input score matrix,
-#' where each row typically represents a scoring component (item) and each column
-#' represents a normalization method. For each resample, total scores per
-#' normalization are computed using \code{\link{bootstrapRowScores}}.
-#'
-#' @param scoreMatrix `numeric` matrix where rows correspond to scoring items
-#'   and columns correspond to normalization methods.
-#' @param nBoot `integer`. Number of bootstrap resamples. Default is `1000`.
-#'
-#' @examples
-#' scoreMatrix <- matrix(
-#'   c(0.2, 0.3, 0.1,
-#'     0.4, 0.2, 0.3,
-#'     0.1, 0.5, 0.2),
-#'   nrow = 3,
-#'   byrow = TRUE
-#' )
-#'
-#' colnames(scoreMatrix) <- c("Norm1", "Norm2", "Norm3")
-#'
-#' computeBootstrapNormScore(scoreMatrix, nBoot = 100)
-#'
-#' @seealso
-#' \code{\link{bootstrapRowScores}}
-#'
-#' @keywords internal
-
-computeBootstrapNormScore <- function(scoreMatrix, nBoot = 1000) {
-  bootResults <- boot::boot(
-    data = scoreMatrix,
-    statistic = bootstrapRowScores,
-    R = nBoot
-  )
-  
-  bootstrapMeans <- colMeans(bootResults$t)
-  
-  bootstrapScores <- as.data.frame(
-    t(
-      sapply(seq_len(ncol(scoreMatrix)), function(i) {
-        ci <- boot::boot.ci(bootResults, type = "perc", index = i)
-        c(
-          colnames(scoreMatrix)[i],
-          bootstrapMeans[i],
-          ci$percent[4],
-          ci$percent[5]
-        )
-      }, simplify = TRUE)
-    )
-  )
-  
-  colnames(bootstrapScores) <- c(
-    "normalization",
-    "meanNormScore",
-    "ll95",
-    "ul95"
-  )
-  bootstrapScores[-1] <- lapply(bootstrapScores[-1], as.numeric)
-  
-  bootstrapScores <- bootstrapScores[order(bootstrapScores$meanNormScore), ]
-  
-  return(bootstrapScores)
-}
-
-
-
-
-
-
-
-#' Plot Bootstrap Normalization Scores
-#'
-#' @description
-#' Creates a summary plot of bootstrap-based normalization scores with
-#' percentile confidence intervals.
-#'
-#' The function takes the output table generated by
-#' \code{\link{computeBootstrapNormScore}} and produces a point-range style plot
-#' showing the mean normScore and its 95\% confidence interval for each
-#' normalization method.
-#'
-#' @param bootstrapScores `data.frame` containing bootstrap summary results for
-#'   normalization methods. It must include the columns `"Normalization"`,
-#'   `"Mean normScore"`, `"LL95%"`, and `"UL95%"`.
-#'
-#' @return
-#' A `ggplot2` object showing the mean normScore and 95\% confidence interval
-#' for each normalization method.
-#'
-#' @details
-#' The plot displays one point per normalization method, corresponding to the
-#' mean bootstrap normScore, together with a horizontal error bar representing
-#' the 95\% confidence interval.
-#'
-#' Normalization methods are ordered by increasing mean normScore, so that
-#' better-performing methods appear according to their ranking.
-#'
-#' @examples
-#' bootstrapScores <- data.frame(
-#'   normalization = c("Norm1", "Norm2", "Norm3"),
-#'   meanNormScore = c(0.25, 0.40, 0.32),
-#'   ll95 = c(0.20, 0.35, 0.28),
-#'   ul95 = c(0.30, 0.45, 0.36)
-#' )
-#'
-#' plotBootstrapNormScore(bootstrapScores)
-#'
-#' @seealso
-#' \code{\link{computeBootstrapNormScore}}
-#'
-#' @export
-#' @keywords internal 
-
-plotBootstrapNormScore <- function(bootstrapScores) {
-  
-  # Checking colnames
-  namesCols <- c(
-    "normalization",
-    "meanNormScore",
-    "ll95",
-    "ul95"
-  )
-  
-  if (!all(colnames(bootstrapScores) == namesCols)){
-    colnames(bootstrapScores) <- namesCols
-  }
-  
-  # Plot!
-  p <- ggplot2::ggplot(
-    bootstrapScores,
-    ggplot2::aes(
-      x = .data$meanNormScore,
-      y = stats::reorder(.data$normalization, .data$meanNormScore)
-    )
-  ) +
-    ggplot2::geom_errorbar(
-      ggplot2::aes(
-        xmin = .data$ll95,
-        xmax = .data$ul95
-      ),
-      width = 0.2,
-      orientation = "y"
-    ) +
-    ggplot2::geom_point(size = 3) +
-    ggplot2::labs(
-      x = "Mean normScore [95% CI]",
-      y = "Normalization"
-    ) +
-    ggplot2::theme_minimal() +
-    ggplot2::theme(
-      axis.line = ggplot2::element_line(linewidth = 0.5, colour = "black"),
-      axis.ticks = ggplot2::element_line(linewidth = 0.5, colour = "black")
-    )
-  
-  return(p)
-}
-
-
-#' @importFrom rlang .data
-NULL
