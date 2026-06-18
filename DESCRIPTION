@@ -18,7 +18,6 @@ License: GPL-2
 Encoding: UTF-8
 LazyData: false
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Depends: 
     R (>= 4.5)
 Imports:
@@ -38,3 +37,4 @@ Config/testthat/edition: 3
 biocViews: Software, Proteomics, Normalization, QualityControl, Preprocessing
 URL: https://https://github.com/juliagcurras/normScore
 BugReports: https://https://github.com/juliagcurras/normScore/issues
+Config/roxygen2/version: 8.0.0

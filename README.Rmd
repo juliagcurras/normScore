@@ -53,14 +53,13 @@ knitr::opts_chunk$set(echo = TRUE)
 # 
 # # Checking
 # devtools::document()
-# # devtools::build_manual() # requires latex 
+# devtools::build_manual() # requires latex
 # devtools::check()
 # # BiocCheck::BiocCheck() # execution at Devel from BiorManager()
 # 
 # 
 # # Installing
 # devtools::install()
-# 
 # 
 # # New release
 ```

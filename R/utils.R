@@ -76,14 +76,16 @@ isSameNormalization <- function(x, y, tolerance = 1e-8) {
 #' @keywords internal
 
 addLogIfMissing <- function(normalizedDataList, rawData, tolerance = 1e-8) {
-  if (any(rawData <= 0, na.rm = TRUE)) {
+  if (any(rawData < 0, na.rm = TRUE)) {
     stop(
-      "'rawData' contains values <= 0, so log2 transformation cannot be computed safely.",
+      "'rawData' contains values < 0, so log2 transformation cannot be computed safely.",
       call. = FALSE
     )
   }
   
-  logData <- log(rawData, base = 2)
+  logData <- as.matrix(log(rawData, base = 2))
+  logData[is.infinite(logData)] <- NA
+  logData <- as.data.frame(logData)
   
   matchingIndex <- which(vapply(
     normalizedDataList,
