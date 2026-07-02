@@ -169,7 +169,7 @@ normScore <- function(
   
 
   #----- Return only finalRanking
-  if (inputs$returnDetails) {
+  if (!inputs$returnDetails) {
     return(
       list(
         finalRanking = finalRanking
