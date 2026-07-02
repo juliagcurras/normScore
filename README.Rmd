@@ -62,6 +62,10 @@ knitr::opts_chunk$set(echo = TRUE)
 # devtools::install(build_vignettes = TRUE, force = TRUE)
 # 
 # # New release
+# usethis::use_version("minor")
+# devtools::check() # A menudo da pequeños errores pero sigue dejando tirar
+# devtools::build_manual(pkg = ".", path = getwd()) # Construye el manual en PDF
+# devtools::build()
 ```
 
 
