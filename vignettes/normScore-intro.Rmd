@@ -2,7 +2,7 @@
 title: "Getting started with normScore"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{normScore-intro}
+  %\VignetteIndexEntry{Getting started with normScore}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

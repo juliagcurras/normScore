@@ -59,7 +59,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # 
 # 
 # # Installing
-# devtools::install()
+# devtools::install(build_vignettes = TRUE, force = TRUE)
 # 
 # # New release
 ```

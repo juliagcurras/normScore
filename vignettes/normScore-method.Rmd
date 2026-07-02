@@ -2,7 +2,7 @@
 title: "Methodological overview of normScore"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{normScore-method}
+  %\VignetteIndexEntry{Methodological overview of normScore}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
