@@ -34,8 +34,9 @@ validateNormScoreInput <- function(
     rawData,
     refGroup,
     altGroup,
-    returnDetails,
-    nBoot
+    returnDetails = NULL,
+    nBoot = NULL, 
+    fromMainFunction = TRUE
     
 ){
   # Check 1. Group data
@@ -80,9 +81,12 @@ validateNormScoreInput <- function(
       normalizedDataList <- res
     }
   }
-  if (!is.logical(returnDetails)){
-    returnDetails <- F
-    warning("Wrong value for returnDetails. Set to FALSE.")
+  
+  if (fromMainFunction){
+    if (!is.logical(returnDetails)){
+      returnDetails <- F
+      warning("Wrong value for returnDetails. Set to FALSE.")
+    }
   }
   
   # Check 5. Sample names
@@ -147,13 +151,15 @@ validateNormScoreInput <- function(
   )
   
   # Check 8. Checking nBoot type
-  if (!is.numeric(nBoot)){
-    nBoot <- 500
-    warning("nBoot input is not numeric. Setting nBoot to 500")
-  }
-  if (nBoot<100){
-    nBoot <- 100
-    warning("The minimum value allowed for nBoot is 100. Setting nBoot to 100.")
+  if (fromMainFunction){
+    if (!is.numeric(nBoot)){
+      nBoot <- 500
+      warning("nBoot input is not numeric. Setting nBoot to 500")
+    }
+    if (nBoot<100){
+      nBoot <- 100
+      warning("The minimum value allowed for nBoot is 100. Setting nBoot to 100.")
+    }
   }
   
   
@@ -446,93 +452,6 @@ computeBootstrapNormScore <- function(
   bootstrapScores <- bootstrapScores[order(bootstrapScores$meanNormScore), ]
   
   return(bootstrapScores)
-}
-
-
-
-
-
-
-#' Plot bootstrap normScore results
-#'
-#' Generates a point-range plot showing the mean bootstrap normScore and its
-#' 95% confidence interval for each normalization method.
-#'
-#' @param x A `normScore` result object containing a `bootstrapScore` element.
-#'   This element should be a data frame with normalization names, mean
-#'   normScore values, and lower and upper 95% confidence limits. It can be 
-#'   obtained by setting returnDetails = `TRUE` at `normScore` main function.
-#'
-#' @return A `ggplot` object showing bootstrap mean normScore values and 95%
-#'   confidence intervals for each normalization method.
-#'
-#' @export
-#'
-#' @examples
-#' bootstrapScore <- data.frame(
-#'   normalization = c("Norm1", "Norm2", "Norm3"),
-#'   meanNormScore = c(0.8, 1.2, 1.5),
-#'   ll95 = c(0.6, 1.0, 1.2),
-#'   ul95 = c(1.0, 1.4, 1.8)
-#' )
-#'
-#' result <- list(bootstrapScore = bootstrapScore)
-#'
-#' plotBootstrapNormScore(result)
-#' 
-#' @export
-
-plotBootstrapNormScore <- function(x) {
-  
-  if (is.null(x$bootstrapScore)) {
-    stop(
-      "Bootstrap scores are not available. ",
-      "Run normScore(..., returnDetails = TRUE) to compute them."
-    )
-  }
-  
-  bootstrapScores <- x$bootstrapScore
-  
-  # Checking colnames
-  namesCols <- c(
-    "normalization",
-    "meanNormScore",
-    "ll95",
-    "ul95"
-  )
-  
-  if (!identical(colnames(bootstrapScores), namesCols)) {
-    colnames(bootstrapScores) <- namesCols
-  }
-  
-  # Plot!
-  p <- ggplot2::ggplot(
-    bootstrapScores,
-    ggplot2::aes(
-      x = .data$meanNormScore,
-      y = stats::reorder(.data$normalization, .data$meanNormScore)
-    )
-  ) +
-    ggplot2::geom_errorbar(
-      ggplot2::aes(
-        xmin = .data$ll95,
-        xmax = .data$ul95
-      ),
-      width = 0.2,
-      orientation = "y"
-    ) +
-    ggplot2::geom_point(size = 3) +
-    ggplot2::labs(
-      x = "Mean normScore [95% CI]",
-      y = "Normalization"
-    ) +
-    ggplot2::theme_minimal() +
-    ggplot2::theme(
-      axis.line = ggplot2::element_line(linewidth = 0.5, colour = "black"),
-      axis.ticks = ggplot2::element_line(linewidth = 0.5, colour = "black")
-    )
-  
-  return(p)
 }
 
 

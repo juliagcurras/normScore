@@ -6,8 +6,23 @@
 #' These functions are not intended to be used directly by end users.
 #' 
 
+#' Just some colors for graphical representation
+#'
+#' @description
+#' Serie of colors that represents the package, used for graphical representations.
+#'
+#' @param n Number of colors to retrieve
+#' 
+#' @return
+#' A `vector` with n colors.
+#'
+#' @keywords internal
 
-
+normScorePalette <- function(n) {
+  grDevices::colorRampPalette(
+    c("#003C72", "#005B9A", "#1786A3", "#2FB2AD", "#9FCFD1")
+  )(n)
+}
 
 
 #' Compare Two Normalized Datasets
@@ -216,11 +231,16 @@ mape <- function(actual, predicted, proportion = FALSE){
 #'
 #' @keywords internal
 
-rleMAPE <- function(data) {
+rleMAPE <- function(data, plotData = FALSE) {
   rowMedians <- apply(data, 1, stats::median, na.rm = TRUE)
   
   # rleData <- as.data.frame(t(t(data) / rowMedians))
   rleData <- data - rowMedians
+  
+  if (plotData){
+    return(rleData)
+  }
+  
   rleData <- 2^rleData
   
   # sampleMedians <- apply(rleData, 2, stats::median, na.rm = TRUE)
@@ -428,7 +448,7 @@ diffAreas <- function(intPred, coefPred, minRange, maxRange, intExpected = 0){
 #'
 #' @keywords internal
 
-meanSDdiffArea <- function(data) {
+meanSDdiffArea <- function(data, plotData = FALSE) {
   sampleMeans <- apply(data, 2, base::mean, na.rm = TRUE)
   sampleSDs <- apply(data, 2, stats::sd, na.rm = TRUE)
   
@@ -440,6 +460,10 @@ meanSDdiffArea <- function(data) {
   
   dfAux <- dfAux[order(dfAux$Mean), ]
   dfAux$Order <- seq_len(nrow(dfAux))
+  
+  if (plotData){
+    return(dfAux)
+  }
   
   fit <- stats::lm(SD ~ Order, data = dfAux)
   slope <- fit$coefficients["Order"]
@@ -521,7 +545,7 @@ meanSDdiffArea <- function(data) {
 #'
 #' @keywords internal
 
-maDiffArea <- function(data, samplesG1, samplesG2) {
+maDiffArea <- function(data, samplesG1, samplesG2, plotData = FALSE) {
   data <- as.data.frame(data)
   maData <- data[, c(samplesG1, samplesG2)]
   maData <- stats::na.omit(maData)
@@ -533,6 +557,12 @@ maDiffArea <- function(data, samplesG1, samplesG2) {
   maData$AveExpr <- apply(maData, 1, function(x) {
     (mean(x[samplesG2], na.rm = TRUE) + mean(x[samplesG1], na.rm = TRUE)) / 2
   })
+  
+  if (plotData){
+    df <- as.data.frame(maData[, c("AveExpr", "logFC")])
+    colnames(df) <- c("A", "M")
+    return(df)
+  }
   
   expressionDeciles <- stats::quantile(maData$AveExpr, probs = seq(0, 1, 0.1))
   
@@ -567,6 +597,33 @@ maDiffArea <- function(data, samplesG1, samplesG2) {
   return(correctedMetric)
 }
 
+
+#' Computes mean and confident interval for a vector of values
+#'
+#' @description
+#' Small function just to estimate mean, lower limit and upper limit for a given
+#' set of values. 
+#' 
+#' @keywords internal
+
+getMeanCI <- function(
+    var, 
+    nconf = 95
+  ){
+  if (!is.numeric(var)) {
+    stop("The current variable is not numeric.")
+  }
+  meanVar <- mean(var, na.rm = TRUE)
+  sdVar <- stats::sd(var, na.rm = TRUE)
+  nVar <- length(stats::na.omit(var))
+  nconf <- (1 - nconf/100)/2
+  
+  quantilT <- stats::qt(nconf, df = (nVar - 1), lower.tail = FALSE)
+  li <- meanVar - quantilT * (sdVar/sqrt(nVar))
+  ls <- meanVar + quantilT * (sdVar/sqrt(nVar))
+  
+  return(c(meanVar, li, ls))
+}
 
 
 
@@ -664,15 +721,38 @@ groupProteinCV <- function(group, groupData, data) {
 #'
 #' @keywords internal
 
-getPCV <- function(data, groups, groupData){
+getPCV <- function(data, groups, groupData, plotData = FALSE){
   groupDataProt <- as.data.frame(
     sapply(groups, groupProteinCV, 
            groupData = groupData, 
            data = data)
   )
-  meanVal <- apply(groupDataProt, 2, mean, na.rm = TRUE)
-  names(meanVal) <- colnames(groupDataProt)
-  return(meanVal)
+  
+  if (!plotData){ # for normScore estimation and boxplot representation (>5)
+    meanVal <- apply(groupDataProt, 2, mean, na.rm = TRUE)
+    names(meanVal) <- colnames(groupDataProt)
+    return(meanVal)
+  } else if (plotData){ # for normScore estimation
+    dfCI <- as.vector(
+      as.matrix(
+          apply(
+            X = groupDataProt, 
+            MARGIN = 2, 
+            FUN = getMeanCI) 
+        )
+      )
+    
+    names(dfCI) <- as.vector(
+      sapply(
+        X = groups, 
+        FUN = paste0, 
+        c(": Mean CV", ": LL", ": UL"), 
+        simplify = TRUE
+        )
+      )
+    return(dfCI)
+  }
+  
 } 
 
 
@@ -761,7 +841,11 @@ withinGroupCorrelations <- function(data, groupData, method = "spearman") {
 #' @keywords internal
 
 
-computeCorrelation <- function(normalizedDataList, groupData, method)
+computeCorrelation <- function(
+    normalizedDataList, 
+    groupData, 
+    method, 
+    plotData = FALSE)
   {
   dfCor <- sapply(
     normalizedDataList,
@@ -772,15 +856,27 @@ computeCorrelation <- function(normalizedDataList, groupData, method)
     USE.NAMES = TRUE
   )
   
-  sapply(
-    names(dfCor),
-    function(normalizationName) {
-      correlationValues <- dfCor[[normalizationName]]
-      1 - (stats::median(correlationValues, na.rm = TRUE) - stats::IQR(correlationValues, na.rm = TRUE) / 3)
-    },
-    simplify = TRUE,
-    USE.NAMES = TRUE
-  )
+  if (!plotData){
+    sapply(
+      names(dfCor),
+      function(normalizationName) {
+        correlationValues <- dfCor[[normalizationName]]
+        1 - (stats::median(correlationValues, na.rm = TRUE) - stats::IQR(correlationValues, na.rm = TRUE) / 3)
+      },
+      simplify = TRUE,
+      USE.NAMES = TRUE
+    )
+  } else if (plotData){
+    data.frame(
+      sapply(
+        X = dfCor, 
+        FUN = "length<-", 
+        max(lengths(dfCor)), 
+        simplify = TRUE, 
+        USE.NAMES = TRUE
+        )
+      )
+  }
   
 }
 
