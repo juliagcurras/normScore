@@ -2,5 +2,6 @@
 
 export(normScore)
 export(plotBootstrapNormScore)
+export(plotNormScoreDiagnostics)
 export(simulateData)
 importFrom(rlang,.data)
