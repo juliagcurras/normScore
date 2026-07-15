@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{isSameNormalization}
 \alias{isSameNormalization}
-\title{Utility functions for internal use in normScore}
+\title{Compare Two Normalized Datasets}
 \usage{
 isSameNormalization(x, y, tolerance = 1e-08)
 }
@@ -20,13 +20,5 @@ A \code{logical} value indicating whether \code{x} and \code{y} are considered e
 \description{
 Checks whether two normalized datasets are equivalent, allowing for small
 numerical differences.
-}
-\details{
-This file contains helper functions used across the package,
-including input validation, data formatting, and auxiliary computations.
-
-These functions are not intended to be used directly by end users.
-
-Compare Two Normalized Datasets
 }
 \keyword{internal}

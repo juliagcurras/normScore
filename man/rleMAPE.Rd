@@ -4,7 +4,7 @@
 \alias{rleMAPE}
 \title{Compute RLE-based MAPE metric}
 \usage{
-rleMAPE(data)
+rleMAPE(data, plotData = FALSE)
 }
 \arguments{
 \item{data}{A matrix or data frame with proteins in rows and samples in

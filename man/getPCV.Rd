@@ -4,7 +4,7 @@
 \alias{getPCV}
 \title{Pooled Coefficient of Variation}
 \usage{
-getPCV(data, groups, groupData)
+getPCV(data, groups, groupData, plotData = FALSE)
 }
 \arguments{
 \item{data}{\code{data.frame} or matrix of numeric values, where rows typically

@@ -4,7 +4,7 @@
 \alias{computeCorrelation}
 \title{Compute within-group correlation item}
 \usage{
-computeCorrelation(normalizedDataList, groupData, method)
+computeCorrelation(normalizedDataList, groupData, method, plotData = FALSE)
 }
 \arguments{
 \item{normalizedDataList}{A named list of normalized data matrices, with

@@ -4,7 +4,7 @@
 \alias{maDiffArea}
 \title{MA-Trend Area Metric with Shape Correction}
 \usage{
-maDiffArea(data, samplesG1, samplesG2)
+maDiffArea(data, samplesG1, samplesG2, plotData = FALSE)
 }
 \arguments{
 \item{data}{\code{data.frame} or matrix of numeric values, where rows typically

@@ -4,7 +4,7 @@
 \alias{meanSDdiffArea}
 \title{Mean-SD Trend Area Metric Across Samples}
 \usage{
-meanSDdiffArea(data)
+meanSDdiffArea(data, plotData = FALSE)
 }
 \arguments{
 \item{data}{\code{data.frame} or matrix of numeric values, where columns typically
