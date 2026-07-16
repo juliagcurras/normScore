@@ -121,7 +121,7 @@ result <- normScore(
   rawData = simData$rawData,
   refGroup = NULL,
   altGroup = NULL,
-  returnDetails = FALSE,
+  returnDetails = TRUE,
   nBoot = 100
  ) 
  result

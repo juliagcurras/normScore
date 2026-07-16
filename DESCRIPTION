@@ -23,6 +23,7 @@ Depends:
 Imports:
     stats,
     ggplot2, 
+    ggpubr,
     boot, 
     MASS, 
     rlang

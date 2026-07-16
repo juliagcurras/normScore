@@ -37,9 +37,9 @@ plotItem0 <- function(
   ggplot2::ggplot(
     dataSum,
     ggplot2::aes(
-      x = Samples,
-      y = Intensity, 
-      fill = Color
+      x = .data$Samples,
+      y = .data$Intensity, 
+      fill = .data$Color
     )) +
     ggplot2::geom_bar(
       stat = "identity" 
@@ -96,42 +96,56 @@ plotItem1 <- function(
   
   dfPCV <- as.data.frame(t(dfPCV))
 
-  dfForest <- dfPCV |>
-    dplyr::mutate(
-      Group = rep(paste0("Group ", seq_len(length(groups))), each = 3),
-      Statistic = rep(c("Mean", "Lower", "Upper"), times = length(groups))
-    ) |>
-    tidyr::pivot_longer(
-      cols = -c(Group, Statistic),
-      names_to = "Normalization",
-      values_to = "Value"
-    ) |>
-    tidyr::pivot_wider(
-      names_from = Statistic,
-      values_from = Value
-    )  |>
-    dplyr::mutate(
-      Normalization = factor(
-        Normalization,
-        levels = unique(Normalization)
+  normalizationNames <- colnames(dfPCV)
+  groupNames <- paste0("Group ", seq_along(groups))
+  
+  dfForest <- do.call(
+    rbind,
+    lapply(normalizationNames, function(normalizationName) {
+      
+      statistics <- matrix(
+        dfPCV[[normalizationName]],
+        ncol = 3,
+        byrow = TRUE,
+        dimnames = list(NULL, c("Mean", "Lower", "Upper"))
       )
+      
+      data.frame(
+        Group = groupNames,
+        Normalization = normalizationName,
+        statistics,
+        row.names = NULL,
+        check.names = FALSE
+      )
+    })
+  )
+  
+  if (nrow(dfPCV) != length(groups) * 3) {
+    stop(
+      "`dfPCV` must contain three rows per group: Mean, Lower and Upper."
     )
+  }
+  
+  dfForest$Normalization <- factor(
+    dfForest$Normalization,
+    levels = normalizationNames
+  )
   
   # Plotting 
   if (length(groups) < 5) {
     finalPlot <- ggplot2::ggplot(
         dfForest,
         ggplot2::aes(
-          x = Normalization,
-          y = Mean,
-          colour = Group,
-          shape = Group
+          x = .data$Normalization,
+          y = .data$Mean,
+          colour = .data$Group,
+          shape = .data$Group
         )
       ) +
         ggplot2::geom_errorbar(
           ggplot2::aes(
-            ymin = Lower,
-            ymax = Upper
+            ymin = .data$Lower,
+            ymax = .data$Upper
           ),
           width = 0,
           linewidth = 0.7,
@@ -162,8 +176,8 @@ plotItem1 <- function(
         ggplot2::ggplot(
           dfForest,
           ggplot2::aes(
-            x = Normalization,
-            y = Mean
+            x = .data$Normalization,
+            y = .data$Mean
           )
         ) +
          ggplot2::geom_boxplot(
@@ -174,7 +188,7 @@ plotItem1 <- function(
             colour = "darkgrey"
           ) +
           ggplot2::geom_jitter(
-            ggplot2::aes(shape = Group, colour = Group),
+            ggplot2::aes(shape = .data$Group, colour = .data$Group),
             width = 0.12,
             height = 0,
             na.rm = TRUE,
@@ -240,8 +254,8 @@ plotItem2 <- function(
   ggplot2::ggplot(
       dfPlot,
       ggplot2::aes(
-        x = Normalization,
-        y = Correlation
+        x = .data$Normalization,
+        y = .data$Correlation
       )
     ) +
     ggplot2::geom_boxplot(
@@ -252,7 +266,7 @@ plotItem2 <- function(
       colour = "black"
     ) +
     ggplot2::geom_jitter(
-      ggplot2::aes(colour = Normalization),
+      ggplot2::aes(colour = .data$Normalization),
       width = 0.12,
       na.rm = TRUE,
       height = 0,
@@ -326,8 +340,8 @@ plotItem3 <- function(
       ggplot2::ggplot(
         dfPlot,
         ggplot2::aes(
-          x = A,
-          y = M
+          x = .data$A,
+          y = .data$M
         )
       ) +
         ggplot2::geom_point(
@@ -409,8 +423,8 @@ plotItem4 <- function(
       ggplot2::ggplot(
         dfPlot,
         ggplot2::aes(
-          x = Order,
-          y = SD
+          x = .data$Order,
+          y = .data$SD
         )
       ) +
         ggplot2::geom_point(
@@ -500,8 +514,8 @@ plotItem5 <- function(
       ggplot2::ggplot(
         dfPlot,
         ggplot2::aes(
-          x = Samples,
-          y = RLE
+          x = .data$Samples,
+          y = .data$RLE
         )
       ) +
         ggplot2::geom_boxplot(
@@ -579,8 +593,8 @@ plotItem6 <- function(
       ggplot2::ggplot(
         dfPlot,
         ggplot2::aes(
-          x = Samples,
-          y = Intensity
+          x = .data$Samples,
+          y = .data$Intensity
         )
       ) +
         ggplot2::geom_boxplot(

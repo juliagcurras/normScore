@@ -90,7 +90,7 @@ result <- normScore(
   normalizedDataList = normalizedDataList,
   groupData = simData$metadata,
   rawData = simData$rawData,
-  returnDetails = FALSE,
+  returnDetails = TRUE,
   nBoot = 50
 )
 ```
