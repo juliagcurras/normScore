@@ -15,7 +15,7 @@ test_that("normScore returns only finalRanking when returnDetails is TRUE", {
     normalizedDataList = normalizedDataList,
     groupData = simData$metadata,
     rawData = simData$rawData,
-    returnDetails = TRUE
+    returnDetails = FALSE
   )
   
   expect_true(is.list(result))
@@ -43,8 +43,8 @@ test_that("normScore returns detailed output when returnDetails is FALSE", {
     normalizedDataList = normalizedDataList,
     groupData = simData$metadata,
     rawData = simData$rawData,
-    returnDetails = FALSE,
-    nBoot = 20
+    returnDetails = TRUE,
+    nBoot = 101
   )
   
   expect_true(is.list(result))
@@ -74,7 +74,7 @@ test_that("normScore includes Log in the ranking even if it is not provided in n
     normalizedDataList = normalizedDataList,
     groupData = simData$metadata,
     rawData = simData$rawData,
-    returnDetails = TRUE
+    returnDetails = FALSE
   )
   
   expect_true("Log" %in% names(result$finalRanking))
