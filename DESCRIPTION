@@ -1,12 +1,13 @@
 Package: normScore
 Title: Evaluation and Ranking of Normalization Methods for Proteomics Data
-Version: 0.0.0.9000
+Version: 0.99.0
 Authors@R: 
     person(
         given = "Julia",
         family = "García Currás",
         role = c("aut", "cre"),
-        email = "julia.gcurras@udc.es"
+        email = "julia.gcurras@udc.es",
+        comment = c(ORCID = "0009-0002-6354-5035")
     )
 Description: 
     Provides tools to evaluate and rank normalization methods for omics datasets
@@ -19,14 +20,15 @@ Encoding: UTF-8
 LazyData: false
 Roxygen: list(markdown = TRUE)
 Depends: 
-    R (>= 4.5)
+    R (>= 4.6)
 Imports:
     stats,
     ggplot2, 
     ggpubr,
     boot, 
     MASS, 
-    rlang
+    rlang,
+    withr
 Suggests: 
     knitr,
     rmarkdown,
