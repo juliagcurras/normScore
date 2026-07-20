@@ -37,7 +37,7 @@ Suggests:
 VignetteBuilder: knitr
 BuildVignettes: true
 Config/testthat/edition: 3
-biocViews: Software, Proteomics, Normalization, QualityControl, Preprocessing
+biocViews: Software, Proteomics, Normalization, QualityControl, Preprocessing, MultipleComparison
 URL: https://https://github.com/juliagcurras/normScore
 BugReports: https://https://github.com/juliagcurras/normScore/issues
 Config/roxygen2/version: 8.0.0
