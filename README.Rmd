@@ -7,68 +7,6 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r  include = F, message = F, error=F, warning=F}
-# ####------------       BASIC CODE FOR BUILDING THE PACKAGE      ------------####
-# 
-# # Change branch in Bioconductor from main to devel
-# # BiocManager::install(version = "devel")
-# # BiocManager::version()
-# # BiocManager::valid()
-# 
-# 
-# # Initial commands...
-# usethis::proj_get()
-# usethis::use_description()
-# usethis::use_namespace()
-# usethis::use_roxygen_md()
-# usethis::use_testthat()
-# usethis::use_news_md()
-# usethis::use_vignette("normScore-intro")
-# usethis::use_vignette("normScore-method")
-# usethis::use_vignette("normScore-simulation")
-# usethis::use_vignette("normScore-NormalyzerDE")
-# usethis::use_vignette("normScore-example")
-#
-# # Web page with documentation
-# usethis::use_pkgdown()
-# pkgdown::build_site()
-# pkgdown::build_home() # Update HOME (readme)
-# pkgdown::build_article("normScore-intro") # Update vignettes
-# pkgdown::build_article("normScore-method") # Update vignettes
-# pkgdown::build_articles() # Update all articles
-# pkgdown::preview_site() # Previsualize
-# 
-# pkgdown::clean_site() # Erase everything 
-# pkgdown::build_site() # Build again
-# 
-# # Creating
-# usethis::use_r("utils")
-# usethis::use_r("normScore")
-# usethis::use_r("simulateData")
-# 
-# 
-# # Building
-# roxygen2::roxygenise() # man folder
-# 
-# 
-# # Checking
-# devtools::document()
-# devtools::build_manual() # requires latex
-# devtools::check()
-# # BiocCheck::BiocCheck() # execution at Devel from BiorManager()
-# 
-# 
-# # Installing
-# devtools::install(build_vignettes = TRUE, force = TRUE)
-# 
-# # New release
-# usethis::use_version("minor")
-# devtools::check() # A menudo da pequeños errores pero sigue dejando tirar
-# devtools::build_manual(pkg = ".", path = getwd()) # Construye el manual en PDF
-# devtools::build()
-```
-
-
 *normScore* is an R package for evaluating and ranking normalization methods in proteomics data based on a composite score that integrates multiple performance metrics.
 
 ## Relevant links
@@ -97,7 +35,7 @@ We strongly recommend using this score in comination with the graphical represen
 *normScore* package can be install through GitHub directly, both the develop or the stable version:
 
 
-```{r echo = T, eval=FALSE}
+```{r echo = TRUE, eval=FALSE}
 # Develop
 devtools::install_github("juliagcurras/normScore")
 
@@ -119,7 +57,7 @@ Three imputs are required to use *normScore* main function:
 With simulateData function, some example data can be generated to test the main function as in the following example:
 
 
-```{r echo = T}
+```{r echo = TRUE}
 # Load library
 library(normScore)
 
@@ -139,7 +77,7 @@ listData <- list(
 
 Once you gathered all input data, *normScore* is ready to be executed!
 
-```{r echo = T}
+```{r echo = TRUE}
 # Compare normalization methods with normScore
 normScore(
   normalizedDataList = listData,
@@ -152,8 +90,75 @@ normScore(
 ```
 
 
+```{r eval = FALSE, echo = FALSE, include = FALSE}
+####------------       BASIC CODE FOR BUILDING THE PACKAGE      ------------####
+
+setwd("C:/Users/julia/Documents/GitHub/normScore") #<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+# Devel branch
+if (!requireNamespace("BiocManager", quietly=TRUE))
+  install.packages("BiocManager")
+BiocManager::install(version = "devel")
+BiocManager::version()
+BiocManager::valid()
+
+
+# Initial commands...
+usethis::proj_get()
+usethis::use_description()
+usethis::use_namespace()
+usethis::use_roxygen_md()
+usethis::use_testthat()
+usethis::use_news_md()
+usethis::use_vignette("normScore-intro")
+usethis::use_vignette("normScore-method")
+usethis::use_vignette("normScore-simulation")
+usethis::use_vignette("normScore-NormalyzerDE")
+usethis::use_vignette("normScore-example")
+
+# Web page with documentation
+usethis::use_pkgdown()
+pkgdown::build_site()
+pkgdown::build_home() # Update HOME (readme)
+pkgdown::build_article("normScore-intro") # Update vignettes
+pkgdown::build_article("normScore-method") # Update vignettes
+pkgdown::build_articles() # Update all articles
+pkgdown::preview_site() # Previsualize
+
+pkgdown::clean_site() # Erase everything
+pkgdown::build_site() # Build again
+
+# Creating R Scripts
+usethis::use_r("utils")
+usethis::use_r("normScore")
+usethis::use_r("simulateData")
+
+
+# Building <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+roxygen2::roxygenise() # man folder
+devtools::document()
+devtools::build_manual() # requires latex
+
+
+# Checking <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+devtools::test()
+devtools::check()
+devtools::run_examples()
+BiocCheck::BiocCheckGitClone()
+BiocCheck::BiocCheck('new-package'=TRUE)
+
+
+# Installing <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+devtools::install(build_vignettes = TRUE, force = TRUE)
 
 
 
+# New release
+usethis::use_version("minor")
+devtools::check() # A menudo da pequeños errores pero sigue dejando tirar
+devtools::build_manual(pkg = ".", path = getwd()) # Construye el manual en PDF
+devtools::build()
+
+```
 
 
