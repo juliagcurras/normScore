@@ -7,7 +7,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -34,7 +34,7 @@ In this vignette, we show a minimal workflow using simulated data.
 To keep the package lightweight and reproducible, `normScore` includes a
 data simulation function that generates proteomics-like two-group datasets.
 
-```{r}
+```{r simulateData}
 library(normScore)
 
 simData <- simulateData(
@@ -47,7 +47,7 @@ simData <- simulateData(
 
 The simulated object contains three main elements:
 
-```{r}
+```{r justSimDataStr}
 names(simData)
 ```
 
@@ -57,7 +57,7 @@ names(simData)
 
 We can inspect the sample metadata:
 
-```{r}
+```{r simMetadata}
 head(simData$metadata)
 ```
 
@@ -71,7 +71,7 @@ For illustration purposes, we create a few simple variants of the simulated
 log-scale data. In a real analysis, these would correspond to different
 normalization methods.
 
-```{r}
+```{r normalization}
 normalizedDataList <- list(
   Log = simData$logData,
   Shifted = simData$logData + 0.1,
@@ -85,7 +85,7 @@ names(normalizedDataList)
 
 We now compute the normalization ranking.
 
-```{r}
+```{r normScoreUsage}
 result <- normScore(
   normalizedDataList = normalizedDataList,
   groupData = simData$metadata,
@@ -100,7 +100,7 @@ result <- normScore(
 The `finalRanking` element contains the final composite score for each
 normalization method.
 
-```{r}
+```{r finalNormScoreRank}
 result$finalRanking
 ```
 
@@ -112,7 +112,7 @@ scoring framework implemented in the package.
 The `detailRanking` element contains the scaled item-wise scores used to
 build the final ranking.
 
-```{r}
+```{r detailedRanking}
 result$detailRanking
 ```
 
@@ -132,7 +132,7 @@ These are scaled and combined into a final score.
 If `onlyFinalRanking = FALSE`, the function also computes bootstrap-based
 summary scores and confidence intervals.
 
-```{r}
+```{r strSimulatedData}
 result$bootstrapScore
 ```
 
@@ -147,8 +147,33 @@ This output contains:
 
 The bootstrap summary can also be visualized directly:
 
-```{r}
+```{r plotBootstrapInterval}
 plotBootstrapNormScore(result)
+```
+
+## Diagnostic plots {.tabset}
+
+Individual diagnostic plots from state-of-art normalization criteria can be
+visualed with the following function:
+
+```{r getDiagnosticPlots}
+allPlots <- plotNormScoreDiagnostics(
+    normalizedDataList = normalizedDataList,
+    groupData = simData$metadata,
+    rawData = simData$rawData)
+
+names(allPlots)
+
+# Plotting each in a different tab
+```
+
+
+```{r displayDiagnosticPlots, echo = FALSE}
+for (individualPlot in names(allPlots)){
+  cat("\n### ", individualPlot, " {-}\n\n")
+  allPlots[[individualPlot]]
+  cat("\n\n")
+}
 ```
 
 ## Notes on the scoring framework
@@ -166,6 +191,6 @@ index.
 
 ## Session information
 
-```{r}
+```{r versions}
 sessionInfo()
 ```

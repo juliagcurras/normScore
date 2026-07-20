@@ -7,7 +7,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -237,6 +237,6 @@ than any single metric alone.
 
 ## Session information
 
-```{r}
+```{r versions}
 sessionInfo()
 ```
