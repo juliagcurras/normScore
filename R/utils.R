@@ -9,7 +9,8 @@
 #' Just some colors for graphical representation
 #'
 #' @description
-#' Serie of colors that represents the package, used for graphical representations.
+#' Serie of colors that represents the package, used for graphical 
+#' representations.
 #'
 #' @param n Number of colors to retrieve
 #' 
@@ -17,6 +18,7 @@
 #' A `vector` with n colors.
 #'
 #' @keywords internal
+#' @noRd
 
 normScorePalette <- function(n) {
   grDevices::colorRampPalette(
@@ -40,6 +42,7 @@ normScorePalette <- function(n) {
 #' A `logical` value indicating whether `x` and `y` are considered equivalent.
 #'
 #' @keywords internal
+#' @noRd
 
 isSameNormalization <- function(x, y, tolerance = 1e-8) {
   x <- as.matrix(x)
@@ -69,8 +72,8 @@ isSameNormalization <- function(x, y, tolerance = 1e-8) {
 #'
 #' @description
 #' Checks whether a log2-transformed version of the raw data is already present
-#' in a list of normalized datasets. If not found, it is added. If found under a
-#' different name, it is renamed to `"Log"`.
+#' in a list of normalized datasets. If not found, it is added. If found under
+#' a different name, it is renamed to `"Log"`.
 #'
 #' @param normalizedDataList Named list of normalized data matrices or data
 #'   frames. Each element represents a normalization method.
@@ -80,20 +83,22 @@ isSameNormalization <- function(x, y, tolerance = 1e-8) {
 #'   Default is `1e-8`.
 #'
 #' @return
-#' A named list of normalized datasets, guaranteed to contain a log2-transformed
-#' version of `rawData` under the name `"Log"`. If multiple matching datasets are
-#' found, only the first one is kept.
+#' A named list of normalized datasets, guaranteed to contain a
+#'  log2-transformed version of `rawData` under the name `"Log"`. If multiple 
+#' matching datasets are found, only the first one is kept.
 #'
 #'
 #' @seealso
 #' \code{\link{isSameNormalization}}
 #'
 #' @keywords internal
+#' @noRd
 
 addLogIfMissing <- function(normalizedDataList, rawData, tolerance = 1e-8) {
   if (any(rawData < 0, na.rm = TRUE)) {
     stop(
-      "'rawData' contains values < 0, so log2 transformation cannot be computed safely.",
+      "'rawData' contains values < 0, so log2 transformation cannot
+      be computed safely.",
       call. = FALSE
     )
   }
@@ -110,13 +115,15 @@ addLogIfMissing <- function(normalizedDataList, rawData, tolerance = 1e-8) {
   
   if (length(matchingIndex) == 0) {
     normalizedDataList[["Log"]] <- logData
-    message("Log2-transformed raw data were added to 'normalizedDataList' as 'Log'.")
+    message("Log2-transformed raw data were added to 
+            'normalizedDataList' as 'Log'.")
   } else {
     names(normalizedDataList)[matchingIndex[1]] <- "Log"
     
     if (length(matchingIndex) > 1) {
       normalizedDataList <- normalizedDataList[-matchingIndex[-1]]
-      message("Multiple log2-equivalent normalizations were found. The first one was kept and renamed to 'Log'.")
+      message("Multiple log2-equivalent normalizations were found. 
+              The first one was kept and renamed to 'Log'.")
     }
   }
   
@@ -137,7 +144,8 @@ addLogIfMissing <- function(normalizedDataList, rawData, tolerance = 1e-8) {
 #'
 #' @param x `numeric`. Numeric vector for which the coefficient of variation
 #'   will be calculated.
-#' @param proportion `logical`. If `TRUE`, the result is returned as a proportion.
+#' @param proportion `logical`. If `TRUE`, the result is returned as a 
+#' proportion.
 #'   If `FALSE`, it is multiplied by 100 and returned as a percentage.
 #'   Default is `TRUE`.
 #' @param na.rm `logical`. Should missing values (`NA`) be removed before
@@ -158,6 +166,7 @@ addLogIfMissing <- function(normalizedDataList, rawData, tolerance = 1e-8) {
 #'
 #'
 #' @keywords internal
+#' @noRd
 
 
 cv <- function(x, proportion =TRUE, na.rm = TRUE) {
@@ -184,7 +193,8 @@ cv <- function(x, proportion =TRUE, na.rm = TRUE) {
 #' @param actual `numeric`. Vector of observed (true) values.
 #' @param predicted `numeric`. Vector of predicted values. Must have the same
 #'   length as `actual`.
-#' @param proportion `logical`. If `TRUE`, the result is returned as a proportion.
+#' @param proportion `logical`. If `TRUE`, the result is returned as a 
+#' proportion.
 #'   If `FALSE`, it is multiplied by 100 and returned as a percentage.
 #'   Default is `FALSE`.
 #'
@@ -194,7 +204,8 @@ cv <- function(x, proportion =TRUE, na.rm = TRUE) {
 #' @details
 #' The mean absolute percentage error is defined as:
 #'
-#' \deqn{MAPE = \frac{1}{n} \sum_{i=1}^{n} \left| \frac{actual_i - predicted_i}{actual_i} \right|}
+#' \deqn{MAPE = \frac{1}{n} \sum_{i=1}^{n} \left| \frac{actual_i -
+#'  predicted_i}{actual_i} \right|}
 #'
 #' If `proportion = FALSE`, the result is multiplied by 100.
 #'
@@ -202,6 +213,7 @@ cv <- function(x, proportion =TRUE, na.rm = TRUE) {
 #' In such cases, the function may return `Inf` or `NaN`.
 #'
 #' @keywords internal
+#' @noRd
 
 
 mape <- function(actual, predicted, proportion = FALSE){
@@ -230,6 +242,7 @@ mape <- function(actual, predicted, proportion = FALSE){
 #'   lower values indicate better normalization performance.
 #'
 #' @keywords internal
+#' @noRd
 
 rleMAPE <- function(data, plotData = FALSE) {
   rowMedians <- apply(data, 1, stats::median, na.rm = TRUE)
@@ -246,10 +259,12 @@ rleMAPE <- function(data, plotData = FALSE) {
   # sampleMedians <- apply(rleData, 2, stats::median, na.rm = TRUE)
   # sampleMedians <- 2^sampleMedians # No log for MAPE
   
-  sampleQuantiles <- apply(rleData, 2, stats::quantile, na.rm = TRUE, simplify = FALSE)
-  q1 <- sapply(sampleQuantiles, "[[", 2)
-  sampleMedians <- sapply(sampleQuantiles, "[[", 3)
-  q3 <- sapply(sampleQuantiles, "[[", 4)
+  sampleQuantiles <- apply(rleData, 2, stats::quantile, 
+                           na.rm = TRUE, simplify = FALSE)
+  q1 <- vapply(X = sampleQuantiles, FUN = "[[", FUN.VALUE =  numeric(1),  2)
+  sampleMedians <- vapply(X = sampleQuantiles, FUN = "[[",
+                          FUN.VALUE =  numeric(1), 3)
+  q3 <- vapply(X = sampleQuantiles, FUN = "[[", FUN.VALUE =  numeric(1), 4)
   
   finalMetric <- 
     mape(actual = 1, predicted = sampleMedians, proportion = TRUE) +
@@ -306,15 +321,19 @@ rleMAPE <- function(data, plotData = FALSE) {
 #' \code{\link{mape}}
 #'
 #' @keywords internal
+#' @noRd
 
 tiMAPE <- function(data) {
-  sampleQuantiles <- apply(data, 2, stats::quantile, na.rm = TRUE, simplify = FALSE)
-  q1 <- sapply(sampleQuantiles, "[[", 2)
-  sampleMedians <- sapply(sampleQuantiles, "[[", 3)
-  q3 <- sapply(sampleQuantiles, "[[", 4)
+  sampleQuantiles <- apply(data, 2, stats::quantile, 
+                           na.rm = TRUE, simplify = FALSE)
+  q1 <- vapply(X = sampleQuantiles, FUN = "[[", FUN.VALUE =  numeric(1), 2)
+  sampleMedians <- vapply(X = sampleQuantiles, FUN = "[[", 
+                          FUN.VALUE = numeric(1), 3)
+  q3 <- vapply(X = sampleQuantiles, FUN = "[[", FUN.VALUE = numeric(1), 4)
   
   finalMetric <- 
-    mape(actual = stats::median(sampleMedians), predicted = sampleMedians, proportion = TRUE) +
+    mape(actual = stats::median(sampleMedians), predicted = sampleMedians, 
+         proportion = TRUE) +
     mape(actual = stats::median(q1), predicted = q1, proportion = TRUE) +
     mape(actual = stats::median(q3), predicted = q3, proportion = TRUE)
   
@@ -358,8 +377,8 @@ tiMAPE <- function(data) {
 #'
 #' If the crossing point lies within the interval, the area is computed as the
 #' sum of the two signed sub-areas on either side of the intersection.
-#' If no crossing occurs within the interval, the area is computed directly over
-#' the full range.
+#' If no crossing occurs within the interval, the area is computed directly 
+#' over the full range.
 #'
 #' The final area metric is normalized by dividing by:
 #'
@@ -369,6 +388,7 @@ tiMAPE <- function(data) {
 #'
 #'
 #' @keywords internal
+#' @noRd
 
 diffAreas <- function(intPred, coefPred, minRange, maxRange, intExpected = 0){
   
@@ -376,11 +396,11 @@ diffAreas <- function(intPred, coefPred, minRange, maxRange, intExpected = 0){
   intPred <- intPred - intExpected
   
   if (coefPred < 0){
-    a = 1
-    b = -1
+    a <- 1
+    b <- -1
   } else if (coefPred > 0){
-    a = -1
-    b = 1
+    a <- -1
+    b <- 1
   } else if (coefPred == 0){
     return(0)
   }
@@ -391,11 +411,14 @@ diffAreas <- function(intPred, coefPred, minRange, maxRange, intExpected = 0){
   
   # Is cutpoint located inside the range?
   if (all(cpX >= minRange, cpX <= maxRange)){
-    area1 <- coefPred*a*(((minRange + (intPred/coefPred))^2)/2 - ((cpX + (intPred/coefPred))^2)/2)
-    area2 <- coefPred*b*(((cpX + (intPred/coefPred))^2)/2 - ((maxRange + (intPred/coefPred))^2)/2)
+    area1 <- coefPred*a*(((minRange + (intPred/coefPred))^2)/2 - 
+                           ((cpX + (intPred/coefPred))^2)/2)
+    area2 <- coefPred*b*(((cpX + (intPred/coefPred))^2)/2 - 
+                           ((maxRange + (intPred/coefPred))^2)/2)
     areaMetric <- abs(area1+area2)
   } else if (any(cpX < minRange, cpX > maxRange)){
-    areaMetric <- abs(coefPred*(((maxRange + (intPred/coefPred))^2)/2 - ((minRange + (intPred/coefPred))^2)/2))
+    areaMetric <- abs(coefPred*(((maxRange + (intPred/coefPred))^2)/2 - 
+                                  ((minRange + (intPred/coefPred))^2)/2))
   }
   
   areaMetric <- areaMetric/(maxRange-minRange)
@@ -447,6 +470,7 @@ diffAreas <- function(intPred, coefPred, minRange, maxRange, intExpected = 0){
 #' \code{\link{diffAreas}}
 #'
 #' @keywords internal
+#' @noRd
 
 meanSDdiffArea <- function(data, plotData = FALSE) {
   sampleMeans <- apply(data, 2, base::mean, na.rm = TRUE)
@@ -487,15 +511,15 @@ meanSDdiffArea <- function(data, plotData = FALSE) {
 #' MA-Trend Area Metric with Shape Correction
 #'
 #' @description
-#' Computes an area-based metric to quantify deviation from an expected MA trend,
-#' combining both slope/intercept deviation and shape consistency across the
-#' expression range.
+#' Computes an area-based metric to quantify deviation from an expected MA 
+#' trend, combining both slope/intercept deviation and shape consistency across 
+#' the expression range.
 #'
 #' The function first computes an MA-like representation from two groups of
 #' samples, where `logFC` is the difference between group means and `AveExpr`
 #' is their average. It then fits a linear model of `logFC` as a function of
-#' `AveExpr` and calculates the normalized area between the fitted trend and the
-#' expected horizontal line `y = 0` using \code{\link{diffAreas}}.
+#' `AveExpr` and calculates the normalized area between the fitted trend and
+#'  the expected horizontal line `y = 0` using \code{\link{diffAreas}}.
 #'
 #' In addition, the function evaluates the shape of the MA trend by dividing
 #' `AveExpr` into 10 bins, computing the interquartile range (IQR) of `logFC`
@@ -521,15 +545,16 @@ meanSDdiffArea <- function(data, plotData = FALSE) {
 #'   \item Removes rows with missing values.
 #'   \item Computes `logFC` as the difference between the mean of group 2 and
 #'   the mean of group 1 for each row.
-#'   \item Computes `AveExpr` as the average of the two group means for each row.
+#'   \item Computes `AveExpr` as the average of the two group means 
+#'   for each row.
 #'   \item Divides `AveExpr` into 10 bins and computes the IQR of `logFC` in
 #'   each bin.
 #'   \item Compares the observed IQR pattern with an expected decreasing trend
 #'   using Spearman correlation, and transforms the result into a correction
 #'   factor ranging from 0.1 to 1.
 #'   \item Fits a linear model of `logFC ~ AveExpr`.
-#'   \item Computes the normalized area between the fitted line and the expected
-#'   horizontal line `y = 0` using \code{\link{diffAreas}}.
+#'   \item Computes the normalized area between the fitted line and the 
+#'   expected horizontal line `y = 0` using \code{\link{diffAreas}}.
 #'   \item Multiplies the area metric by the shape correction factor.
 #' }
 #'
@@ -544,6 +569,7 @@ meanSDdiffArea <- function(data, plotData = FALSE) {
 #' \code{\link{diffAreas}}
 #'
 #' @keywords internal
+#' @noRd
 
 maDiffArea <- function(data, samplesG1, samplesG2, plotData = FALSE) {
   data <- as.data.frame(data)
@@ -555,7 +581,7 @@ maDiffArea <- function(data, samplesG1, samplesG2, plotData = FALSE) {
   })
   
   maData$AveExpr <- apply(maData, 1, function(x) {
-    (mean(x[samplesG2], na.rm = TRUE) + mean(x[samplesG1], na.rm = TRUE)) / 2
+    (mean(x[samplesG2], na.rm = TRUE) + mean(x[samplesG1], na.rm = TRUE))/2
   })
   
   if (plotData){
@@ -566,14 +592,12 @@ maDiffArea <- function(data, samplesG1, samplesG2, plotData = FALSE) {
   
   expressionDeciles <- stats::quantile(maData$AveExpr, probs = seq(0, 1, 0.1))
   
-  iqrByBin <- sapply(seq_len(length(expressionDeciles) - 1), function(i) {
+  iqrByBin <- vapply(seq_len(length(expressionDeciles) - 1), function(i) {
     logFCValues <- maData$logFC[
       maData$AveExpr > expressionDeciles[i] &
-        maData$AveExpr <= expressionDeciles[i + 1]
-    ]
-    
+        maData$AveExpr <= expressionDeciles[i + 1]]
     stats::IQR(logFCValues, na.rm = TRUE)
-  })
+  }, numeric(1))
   
   rho <- stats::cor(iqrByBin, 10:1, method = "spearman")
   rho <- (1 - rho) / 2
@@ -601,10 +625,11 @@ maDiffArea <- function(data, samplesG1, samplesG2, plotData = FALSE) {
 #' Computes mean and confident interval for a vector of values
 #'
 #' @description
-#' Small function just to estimate mean, lower limit and upper limit for a given
-#' set of values. 
+#' Small function just to estimate mean, lower limit and upper limit for a
+#' given set of values. 
 #' 
 #' @keywords internal
+#' @noRd
 
 getMeanCI <- function(
     var, 
@@ -653,7 +678,8 @@ getMeanCI <- function(
 #' @details
 #' The function performs the following steps:
 #' \enumerate{
-#'   \item Identifies the samples belonging to the specified group using `groupData`.
+#'   \item Identifies the samples belonging to the specified group using 
+#'   `groupData`.
 #'   \item Subsets `data` to those samples.
 #'   \item Computes the coefficient of variation for each row using
 #'   \code{\link{cv}} with `proportion = FALSE`.
@@ -666,12 +692,14 @@ getMeanCI <- function(
 #' \code{\link{cv}}
 #'
 #' @keywords internal
+#' @noRd
 
 groupProteinCV <- function(group, groupData, data) {
   groupData <- as.data.frame(groupData)
   data <- as.data.frame(data)
   
-  selectedSamples <- as.vector(unlist(groupData[groupData$Groups == group, "Samples"]))
+  selectedSamples <- as.vector(unlist(groupData[groupData$Groups == group, 
+                                                "Samples"]))
   
   subsetData <- data[, as.character(selectedSamples)]
   apply(subsetData, 1, cv, proportion = FALSE)
@@ -697,8 +725,8 @@ groupProteinCV <- function(group, groupData, data) {
 #'   represent proteins or features and columns represent samples.
 #' @param groups A vector specifying the groups for which CV values should be
 #'   calculated.
-#' @param groupData `data.frame` containing the group annotation or sample-group
-#'   mapping required by \code{\link{groupProteinCV}}.
+#' @param groupData `data.frame` containing the group annotation or 
+#'    sample-group mapping required by \code{\link{groupProteinCV}}.
 #'
 #' @return
 #' A named numeric vector containing the pooled coefficient of
@@ -720,13 +748,15 @@ groupProteinCV <- function(group, groupData, data) {
 #' \code{\link{groupProteinCV}}
 #'
 #' @keywords internal
+#' @noRd
 
 getPCV <- function(data, groups, groupData, plotData = FALSE){
   groupDataProt <- as.data.frame(
-    sapply(groups, groupProteinCV, 
+    vapply(groups, groupProteinCV, numeric(nrow(data)),
            groupData = groupData, 
-           data = data)
-  )
+           data = data))
+  rownames(groupDataProt) <- rownames(data)
+  colnames(groupDataProt) <- groups
   
   if (!plotData){ # for normScore estimation and boxplot representation (>5)
     meanVal <- apply(groupDataProt, 2, mean, na.rm = TRUE)
@@ -743,9 +773,10 @@ getPCV <- function(data, groups, groupData, plotData = FALSE){
       )
     
     names(dfCI) <- as.vector(
-      sapply(
+      vapply(
         X = groups, 
         FUN = paste0, 
+        FUN.VALUE = character(3),
         c(": Mean CV", ": LL", ": UL"), 
         simplify = TRUE
         )
@@ -794,6 +825,7 @@ getPCV <- function(data, groups, groupData, plotData = FALSE){
 #' \code{\link[stats]{cor}}.
 #'
 #' @keywords internal
+#' @noRd
 
 withinGroupCorrelations <- function(data, groupData, method = "spearman") {
   data <- as.data.frame(data)
@@ -804,7 +836,8 @@ withinGroupCorrelations <- function(data, groupData, method = "spearman") {
     
     groupMatrix <- data[, samplesByGroup, drop = FALSE]
     
-    corMatrix <- stats::cor(groupMatrix, use = "pairwise.complete.obs", method = method)
+    corMatrix <- stats::cor(groupMatrix, use = "pairwise.complete.obs", 
+                            method = method)
     
     corValues <- c()
     for (i in seq_len(ncol(groupMatrix) - 1)) {
@@ -839,6 +872,7 @@ withinGroupCorrelations <- function(data, groupData, method = "spearman") {
 #'   normalization method.
 #'
 #' @keywords internal
+#' @noRd
 
 
 computeCorrelation <- function(
@@ -847,35 +881,35 @@ computeCorrelation <- function(
     method, 
     plotData = FALSE)
   {
-  dfCor <- sapply(
+  dfCor <- lapply(
     normalizedDataList,
     withinGroupCorrelations,
     groupData = groupData,
-    method = method, 
-    simplify = FALSE, 
-    USE.NAMES = TRUE
-  )
+    method = method)
   
   if (!plotData){
-    sapply(
-      names(dfCor),
-      function(normalizationName) {
-        correlationValues <- dfCor[[normalizationName]]
-        1 - (stats::median(correlationValues, na.rm = TRUE) - stats::IQR(correlationValues, na.rm = TRUE) / 3)
+    vapply(
+      dfCor,
+      function(correlationValues) {
+        1 - (stats::median(correlationValues, na.rm = TRUE) -
+               stats::IQR(correlationValues, na.rm = TRUE) / 3)
       },
-      simplify = TRUE,
-      USE.NAMES = TRUE
+      numeric(1)
     )
-  } else if (plotData){
+  } else if (plotData) {
+    maxLength <- max(lengths(dfCor))
+    
     data.frame(
-      sapply(
-        X = dfCor, 
-        FUN = "length<-", 
-        max(lengths(dfCor)), 
-        simplify = TRUE, 
-        USE.NAMES = TRUE
-        )
-      )
+      vapply(
+        dfCor,
+        function(x) {
+          length(x) <- maxLength
+          x
+        },
+        numeric(maxLength)
+      ),
+      check.names = FALSE
+    )
   }
   
 }
@@ -914,12 +948,11 @@ computeCorrelation <- function(
 #' procedures.
 #'
 #' @keywords internal
+#' @noRd
 
 bootstrapRowScores <- function(data, indices) {
   resampledMatrix <- data[indices, , drop = FALSE]
   totalScores <- colSums(resampledMatrix)
   return(totalScores)
 }
-
-
 

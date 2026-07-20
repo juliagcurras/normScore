@@ -23,27 +23,29 @@
 #'   names and group labels.
 #' @param rawData `data.frame` or matrix of raw numeric intensities, with rows
 #'   representing features and columns representing samples.
-#' @param refGroup `character` or `NULL`. Reference group used for the MA-plot
-#'   metric. If `NULL`, the last group in `groupData` is used.
-#' @param altGroup `character` or `NULL`. Alternative group used for the MA-plot
+#' @param refGroup `character` or `NULL`. Reference group used for 
+#'   the MA-plot metric. If `NULL`, the last group in `groupData` is used.
+#' @param altGroup `character` or `NULL`. Alternative group used for the 
 #'   metric. If `NULL`, the first group in `groupData` is used.
 #' @param returnDetails `logical`. If `TRUE`, only the final ranking is
-#'   returned. If `FALSE`, detailed scores, bootstrap results, and a summary
-#'   plot are also returned. Default is `FALSE`.
+#'   MA-plot returned. If `FALSE`, detailed scores, bootstrap results, and 
+#'   a summaryplot are also returned. Default is `FALSE`.
 #' @param nBoot `integer`. Number of bootstrap resamples used to estimate mean
 #'   normScore values and confidence intervals. Default is `1000`.
 #'
 #' @return
 #' If `returnDetails = TRUE`, returns a list with:
 #' \describe{
-#'   \item{finalRanking}{Named numeric vector with the final normalization ranking.}
+#'   \item{finalRanking}{Named numeric vector with the final 
+#'   normalization ranking.}
 #' }
 #'
 #' If `returnDetails = FALSE`, returns a list with:
 #' \describe{
-#'   \item{finalRanking}{Named numeric vector with the final normalization ranking.}
-#'   \item{detailRanking}{`data.frame` with scaled item-wise scores, total score,
-#'   and corrected total score for each normalization method.}
+#'   \item{finalRanking}{Named numeric vector with the final 
+#'   normalization ranking.}
+#'   \item{detailRanking}{`data.frame` with scaled item-wise scores, total 
+#'   score, and corrected total score for each normalization method.}
 #'   \item{bootstrapScore}{`data.frame` with bootstrap mean scores and 95\%
 #'   percentile confidence intervals for each normalization method.}
 #'   \item{graphic}{A `ggplot2` object showing the bootstrap mean scores and
@@ -54,7 +56,8 @@
 #' The function computes the following six item scores for each normalization
 #' method:
 #' \enumerate{
-#'   \item \strong{Item1}: mean pooled coefficient of variation across groups (PVC).
+#'   \item \strong{Item1}: mean pooled coefficient of variation across 
+#'   groups (PVC).
 #'   \item \strong{Item2}: within-group Spearman correlation summary,
 #'   transformed so that lower values indicate better performance (Correlation).
 #'   \item \strong{Item3}: shape-corrected area-based deviation from the
@@ -74,11 +77,10 @@
 #' intensities is applied only to the normalization method named `"Log"`.
 #'
 #' When `returnDetails = FALSE`, bootstrap resampling of the six item scores
-#' is performed using \code{\link{computeBootstrapNormScore}}. 
-#' The results can be visualized using \code{\link{plotBootstrapNormScore}}.
+#' is performed.The results can be visualized using 
+#' \code{\link{plotBootstrapNormScore}}.
 #'
 #' @examples
-#' # Minimal example structure
 #' 
 #' # Simulate proteomic data
 #' simData <- simulateData(nProteins = 1000)
@@ -105,30 +107,17 @@
 #'  ) 
 #'  result
 #'  
-#'  # Plot bootstrap score
-#'  plotBootstrapNormScore(result)
 #' 
-#'
 #' @seealso
-#' \code{\link{validateNormScoreInput}},
-#' \code{\link{computeNormScoreItems}},
-#' \code{\link{scaleNormScoreItems}},
-#' \code{\link{rankNormScoreItems}},
-#' \code{\link{computeBootstrapNormScore}},
-#' \code{\link{plotBootstrapNormScore}}
+#' \code{\link{plotNormScoreDiagnostics}},
+#' \code{\link{plotBootstrapNormScore}},
+#' \code{\link{simulateData}}
 #'
 #' @export
 
-normScore <- function(
-    normalizedDataList,
-    groupData,
-    rawData,
-    refGroup = NULL,
-    altGroup = NULL,
-    returnDetails = TRUE,
-    nBoot = 1000
-) {
-  
+normScore <- function(normalizedDataList, groupData, rawData,
+                      refGroup = NULL, altGroup = NULL,
+                      returnDetails = TRUE, nBoot = 1000) {
   #----- Initial checks ####
   inputs <- validateNormScoreInput(
     normalizedDataList = normalizedDataList,
@@ -137,16 +126,11 @@ normScore <- function(
     refGroup = refGroup,
     altGroup = altGroup,
     returnDetails = returnDetails,
-    nBoot = nBoot
-  )
-  
+    nBoot = nBoot)
   
   #----- Item 0 as correction factor ####
-  item0 <- cv(
-    x = colSums(rawData, na.rm = TRUE), 
-    proportion = TRUE, na.rm = TRUE
-  ) * 4 # Correction factor
-  
+  item0 <- cv(x = colSums(rawData, na.rm = TRUE), 
+              proportion = TRUE, na.rm = TRUE)*4 # Correction factor
   
   #----- Compute items ####
   scoreDF <- computeNormScoreItems(
@@ -155,42 +139,25 @@ normScore <- function(
     rawData = inputs$rawData,
     refGroup = inputs$refGroup,
     altGroup = inputs$altGroup, 
-    singleGroup = inputs$singleGroup
-  )
-  
+    singleGroup = inputs$singleGroup)
   
   #----- Scaled items ####
   scaledScoreDF <- scaleNormScoreItems(scoreDF)
   
-  
   #----- Aggregate items, correct total and rank ####
   rankedScoreDF <- rankNormScoreItems(scaledScoreDF, item0 = item0)
-  finalRanking <- stats::setNames(rankedScoreDF$TotalxItem0, rownames(rankedScoreDF))
-  
+  finalRanking <- stats::setNames(rankedScoreDF$TotalxItem0, 
+                                  rownames(rankedScoreDF))
 
   #----- Return only finalRanking
   if (!inputs$returnDetails) {
-    return(
-      list(
-        finalRanking = finalRanking
-      )
-    )
-  } else {
-    #----- Last output: Bootstrap over score items' 
-    bootstrapScores <- computeBootstrapNormScore(
-      rankedScoreDF = rankedScoreDF,
-      item0 = item0,
-      nBoot = inputs$nBoot
-    )
-    
+    return(list(finalRanking = finalRanking))
+  } else {     #----- Last output: Bootstrap over score items' 
+    bootstrapScores <- computeBootstrapNormScore( 
+      rankedScoreDF = rankedScoreDF, item0 = item0, nBoot = inputs$nBoot)
     #----- Return detailed results
-    return(
-      list(
-        finalRanking = finalRanking,
-        detailRanking = rankedScoreDF,
-        bootstrapScore = bootstrapScores
-      )
-    )
+    return(list(finalRanking = finalRanking, detailRanking = rankedScoreDF,
+                bootstrapScore = bootstrapScores))
   }
 }
 
