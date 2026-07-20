@@ -2,7 +2,7 @@
 % Please edit documentation in R/simulateData.R
 \name{simulateData}
 \alias{simulateData}
-\title{Simulate Label-Free Proteomics-Like Two-Group Data}
+\title{Simulate label-free proteomics-like two-group data}
 \usage{
 simulateData(
   nProteins = 10000,
@@ -39,7 +39,8 @@ simulateData(
 \item{nProteins}{\code{integer}. Number of proteins or features to simulate.
 Default is \code{10000}.}
 
-\item{nPerGroup}{\code{integer}. Number of samples per group. Default is \code{20}.}
+\item{nPerGroup}{\code{integer}. Number of samples per group.
+Default is \code{20}.}
 
 \item{muMean}{\code{numeric}. Mean of the protein-wise abundance distribution on
 the log2 scale. Default is \code{18}.}
@@ -50,11 +51,11 @@ distribution on the log2 scale. Default is \code{1.2}.}
 \item{muClip}{\code{numeric} vector of length 2. Lower and upper bounds used to
 truncate simulated protein means. Default is \code{c(15, 25)}.}
 
-\item{rhoWithin}{\code{numeric}. Within-group correlation target for the latent
-sample factor. Default is \code{0.85}.}
+\item{rhoWithin}{\code{numeric}. Within-group correlation target for the
+latent sample factor. Default is \code{0.85}.}
 
-\item{rhoBetween}{\code{numeric}. Between-group correlation target for the latent
-sample factor. Default is \code{0.55}.}
+\item{rhoBetween}{\code{numeric}. Between-group correlation target for the
+latent sample factor. Default is \code{0.55}.}
 
 \item{loadingSd}{\code{numeric}. Standard deviation of protein-specific loadings
 for the correlated latent factor. Default is \code{0.25}.}
@@ -65,8 +66,8 @@ Default is \code{0.05}.}
 \item{sigmaLo}{\code{numeric}. Residual standard deviation at low abundance.
 Default is \code{0.4}.}
 
-\item{gammaSigma}{\code{numeric}. Controls how strongly residual variance depends
-on abundance. Default is \code{2.5}.}
+\item{gammaSigma}{\code{numeric}. Controls how strongly residual variance
+depends on abundance. Default is \code{2.5}.}
 
 \item{propDE}{\code{numeric}. Proportion of differentially expressed proteins.
 Default is \code{0.35}.}
@@ -74,11 +75,11 @@ Default is \code{0.35}.}
 \item{logFCSd}{\code{numeric}. Standard deviation of differential expression
 log-fold changes. Default is \code{1}.}
 
-\item{logFCMean}{\code{numeric}. Mean of differential expression log-fold changes.
-Default is \code{0}.}
+\item{logFCMean}{\code{numeric}. Mean of differential expression log-fold
+changes. Default is \code{0}.}
 
-\item{heteroLogFC}{\code{logical}. If \code{TRUE}, the variance of log-fold changes
-depends on abundance. Default is \code{TRUE}.}
+\item{heteroLogFC}{\code{logical}. If \code{TRUE}, the variance of log-fold
+changes depends on abundance. Default is \code{TRUE}.}
 
 \item{fcHi}{\code{numeric}. Lower multiplier for abundance-dependent logFC
 heterogeneity. Default is \code{0.55}.}
@@ -86,8 +87,8 @@ heterogeneity. Default is \code{0.55}.}
 \item{fcLo}{\code{numeric}. Upper multiplier for abundance-dependent logFC
 heterogeneity. Default is \code{2.5}.}
 
-\item{gammaFC}{\code{numeric}. Controls how strongly logFC variability depends on
-abundance. Default is \code{7}.}
+\item{gammaFC}{\code{numeric}. Controls how strongly logFC variability depends
+on abundance. Default is \code{7}.}
 
 \item{sampleShiftSd}{\code{numeric}. Standard deviation of global sample shifts.
 Default is \code{0}.}
@@ -99,7 +100,8 @@ sample shifts. Default is \code{0.2}.}
 dependence. A value of \code{0} implies independence. Default is \code{0}.}
 
 \item{sampleSdRho}{\code{numeric}. Correlation between sample mean rank and
-sample-specific SD effect. Must lie between \code{0} and \code{1}. Default is \code{0.8}.}
+sample-specific SD effect. Must lie between \code{0} and \code{1}.
+Default is \code{0.8}.}
 
 \item{sampleSdCap}{\code{numeric}. Maximum absolute value allowed for the
 log-multiplier controlling sample-specific SD effects. Default is \code{0.35}.}
@@ -107,34 +109,32 @@ log-multiplier controlling sample-specific SD effects. Default is \code{0.35}.}
 \item{addMissing}{\code{logical}. Should MNAR missing values be added?
 Default is \code{TRUE}.}
 
-\item{targetMissing}{\code{numeric}. Target overall proportion of missing values.
+\item{targetMissing}{\code{numeric}. Target overall proportion of missing
 Default is \code{0.001}.}
 
-\item{kMnar}{\code{numeric}. Strength of abundance dependence in the MNAR missing
-value mechanism. Default is \code{1.2}.}
+\item{kMnar}{\code{numeric}. Strength of abundance dependence in the MNAR
+missing values. value mechanism. Default is \code{1.2}.}
 
 \item{missingBySampleSd}{\code{numeric}. Standard deviation of sample-specific
 missingness shifts. Default is \code{0.05}.}
 
-\item{seed}{\code{integer}. Random seed used for reproducibility. Default is \code{9396}.}
+\item{seed}{\code{integer}. Random seed used for reproducibility.
+Default is \code{9396}.}
 }
 \value{
 A list with the following elements:
 \describe{
 \item{logData}{Numeric matrix of simulated log2-scale data.}
-\item{rawData}{Numeric matrix of simulated raw-scale data, obtained as \code{2^logData}.}
+\item{rawData}{Numeric matrix of simulated raw-scale data, obtained
+as \code{2^logData}.}
 \item{metadata}{\code{data.frame} containing sample names and group labels.}
 }
 }
 \description{
-Simulates two-group quantitative omics data with controlled signal structure,
-including protein-specific mean abundance, within- and between-group sample
-correlation, abundance-dependent residual variance, differential expression,
-sample-level global shifts, mean-SD dependence, and optional MNAR missingness.
-
-The function is designed to generate synthetic datasets suitable for testing
-normalization and scoring workflows without including large example datasets
-in the package.
+Simulates two-group quantitative omics data with controlled signal
+structure, including abundance-dependent variance, differential
+expression, sample correlation, global shifts, mean-SD dependence,
+and optional MNAR missingness.
 }
 \details{
 The simulated data include several structured components:
@@ -147,9 +147,9 @@ MA-like wedge pattern.
 \item Symmetric differential expression between the two groups.
 \item Optional global sample shifts affecting overall intensity.
 \item Optional sample-level mean-SD dependence.
-\item Optional MNAR missingness driven by abundance and sample-specific effects.
+\item Optional MNAR missingness driven by abundance and sample-specific
+effects.
 }
-
 The output is intended for testing normalization methods and associated
 scoring procedures under controlled simulation settings.
 }
@@ -161,7 +161,6 @@ simData <- simulateData(
   addMissing = TRUE,
   seed = 123
 )
-
 
 dim(simData$logData)
 head(simData$metadata)

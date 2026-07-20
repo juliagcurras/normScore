@@ -7,14 +7,15 @@
 plotBootstrapNormScore(x)
 }
 \arguments{
-\item{x}{A \code{normScore} result object containing a \code{bootstrapScore} element.
-This element should be a data frame with normalization names, mean
-normScore values, and lower and upper 95\% confidence limits. It can be
-obtained by setting returnDetails = \code{TRUE} at \code{normScore} main function.}
+\item{x}{A \code{normScore} result object containing a \code{bootstrapScore}
+element. This element should be a data frame with normalization names,
+mean normScore values, and lower and upper 95\% confidence limits.
+It can beobtained by setting returnDetails = \code{TRUE}
+at \code{normScore} main function.}
 }
 \value{
-A \code{ggplot} object showing bootstrap mean normScore values and 95\%
-confidence intervals for each normalization method.
+A \code{ggplot} object showing bootstrap mean normScore values
+and 95\% confidence intervals for each normalization method.
 }
 \description{
 Generates a point-range plot showing the mean bootstrap normScore and its

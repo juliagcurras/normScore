@@ -26,15 +26,15 @@ names and group labels.}
 \item{rawData}{\code{data.frame} or matrix of raw numeric intensities, with rows
 representing features and columns representing samples.}
 
-\item{refGroup}{\code{character} or \code{NULL}. Reference group used for the MA-plot
-metric. If \code{NULL}, the last group in \code{groupData} is used.}
+\item{refGroup}{\code{character} or \code{NULL}. Reference group used for
+the MA-plot metric. If \code{NULL}, the last group in \code{groupData} is used.}
 
-\item{altGroup}{\code{character} or \code{NULL}. Alternative group used for the MA-plot
+\item{altGroup}{\code{character} or \code{NULL}. Alternative group used for the
 metric. If \code{NULL}, the first group in \code{groupData} is used.}
 
 \item{returnDetails}{\code{logical}. If \code{TRUE}, only the final ranking is
-returned. If \code{FALSE}, detailed scores, bootstrap results, and a summary
-plot are also returned. Default is \code{FALSE}.}
+MA-plot returned. If \code{FALSE}, detailed scores, bootstrap results, and
+a summaryplot are also returned. Default is \code{FALSE}.}
 
 \item{nBoot}{\code{integer}. Number of bootstrap resamples used to estimate mean
 normScore values and confidence intervals. Default is \code{1000}.}
@@ -42,14 +42,16 @@ normScore values and confidence intervals. Default is \code{1000}.}
 \value{
 If \code{returnDetails = TRUE}, returns a list with:
 \describe{
-\item{finalRanking}{Named numeric vector with the final normalization ranking.}
+\item{finalRanking}{Named numeric vector with the final
+normalization ranking.}
 }
 
 If \code{returnDetails = FALSE}, returns a list with:
 \describe{
-\item{finalRanking}{Named numeric vector with the final normalization ranking.}
-\item{detailRanking}{\code{data.frame} with scaled item-wise scores, total score,
-and corrected total score for each normalization method.}
+\item{finalRanking}{Named numeric vector with the final
+normalization ranking.}
+\item{detailRanking}{\code{data.frame} with scaled item-wise scores, total
+score, and corrected total score for each normalization method.}
 \item{bootstrapScore}{\code{data.frame} with bootstrap mean scores and 95\\%
 percentile confidence intervals for each normalization method.}
 \item{graphic}{A \code{ggplot2} object showing the bootstrap mean scores and
@@ -75,7 +77,8 @@ and percentile-based confidence intervals.
 The function computes the following six item scores for each normalization
 method:
 \enumerate{
-\item \strong{Item1}: mean pooled coefficient of variation across groups (PVC).
+\item \strong{Item1}: mean pooled coefficient of variation across
+groups (PVC).
 \item \strong{Item2}: within-group Spearman correlation summary,
 transformed so that lower values indicate better performance (Correlation).
 \item \strong{Item3}: shape-corrected area-based deviation from the
@@ -95,11 +98,10 @@ A correction factor based on the coefficient of variation of total raw sample
 intensities is applied only to the normalization method named \code{"Log"}.
 
 When \code{returnDetails = FALSE}, bootstrap resampling of the six item scores
-is performed using \code{\link{computeBootstrapNormScore}}.
-The results can be visualized using \code{\link{plotBootstrapNormScore}}.
+is performed.The results can be visualized using
+\code{\link{plotBootstrapNormScore}}.
 }
 \examples{
-# Minimal example structure
 
 # Simulate proteomic data
 simData <- simulateData(nProteins = 1000)
@@ -126,16 +128,10 @@ result <- normScore(
  ) 
  result
  
- # Plot bootstrap score
- plotBootstrapNormScore(result)
-
 
 }
 \seealso{
-\code{\link{validateNormScoreInput}},
-\code{\link{computeNormScoreItems}},
-\code{\link{scaleNormScoreItems}},
-\code{\link{rankNormScoreItems}},
-\code{\link{computeBootstrapNormScore}},
-\code{\link{plotBootstrapNormScore}}
+\code{\link{plotNormScoreDiagnostics}},
+\code{\link{plotBootstrapNormScore}},
+\code{\link{simulateData}}
 }

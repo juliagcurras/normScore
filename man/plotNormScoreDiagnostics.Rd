@@ -14,7 +14,8 @@ plotNormScoreDiagnostics(
 }
 \arguments{
 \item{normalizedDataList}{A named list of normalized data matrices or data
-frames. Each element should contain proteins in rows and samples in columns.}
+frames. Each element should contain proteins in rows and samples in
+columns.}
 
 \item{groupData}{A data frame containing sample-group annotation. The first
 column is assumed to contain sample names and the second column group
@@ -26,13 +27,13 @@ proteins in rows and samples in columns.}
 \item{refGroup}{Character string indicating the reference group used for the
 MA-plot diagnostic. If \code{NULL}, it is automatically selected.}
 
-\item{altGroup}{Character string indicating the alternative group used for the
-MA-plot diagnostic. If \code{NULL}, it is automatically selected.}
+\item{altGroup}{Character string indicating the alternative group used for
+the MA-plot diagnostic. If \code{NULL}, it is automatically selected.}
 }
 \value{
 A named list of diagnostic plots. Each element corresponds to one
-normScore item. If the input contains a single group, the MA-plot element is
-returned as \code{NULL}.
+normScore item. If the input contains a single group, the MA-plot element
+is returned as \code{NULL}.
 }
 \description{
 Generates the set of diagnostic plots associated with the individual
@@ -42,7 +43,31 @@ intensity, pooled coefficient of variation, within-group correlation, MA
 plots, mean-SD trends, RLE distributions, and intensity distributions.
 }
 \details{
-The function validates and aligns the input data before plotting. If only one
-group is provided, the MA-plot diagnostic is skipped because it requires a
-comparison between two groups.
+The function validates and aligns the input data before plotting. If only
+one group is provided, the MA-plot diagnostic is skipped because it requires
+a comparison between two groups.
+}
+\examples{
+# Simulate proteomic data
+simData <- simulateData(nProteins = 1000)
+
+# Normalyze ysing NormalyzerDE package
+normalizedDataList <- list(
+  Norm1 = simData$logData + 0.1,
+  Norm2 = simData$logData + 1,
+  Norm3 = simData$logData - 1,
+  Norm4 = simData$logData * 1.1,
+  Norm5 = simData$logData * 0.9,
+  Norm6 = simData$logData * runif(ncol(simData$logData), 0.8, 1.2)
+)
+
+# Compute ranking
+plotNormScoreDiagnostics(
+  normalizedDataList = normalizedDataList,
+  groupData = simData$metadata,
+  rawData = simData$rawData,
+  refGroup = NULL,
+  altGroup = NULL
+ ) 
+
 }
