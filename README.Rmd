@@ -113,7 +113,10 @@ usethis::use_news_md()
 usethis::use_vignette("normScore-intro")
 usethis::use_vignette("normScore-method")
 usethis::use_vignette("normScore-simulation")
-usethis::use_vignette("normScore-NormalyzerDE")
+usethis::use_vignette(
+    name = "normScore-MorePackages", 
+    title = "Using normScore with SummarizedExperiment 
+    and NormalyzedDE packages")
 usethis::use_vignette("normScore-example")
 
 # Web page with documentation
@@ -124,6 +127,7 @@ pkgdown::build_article("normScore-intro") # Update vignettes
 pkgdown::build_article("normScore-method") # Update vignettes
 pkgdown::build_articles() # Update all articles
 pkgdown::preview_site() # Previsualize
+# usethis::use_pkgdown_github_pages() # Add to github pages
 
 pkgdown::clean_site() # Erase everything
 pkgdown::build_site() # Build again
@@ -138,9 +142,9 @@ usethis::use_r("simulateData")
 roxygen2::roxygenise() # man folder
 devtools::document()
 devtools::build_manual() # requires latex
-styler::style_pkg(
-    transformers = styler::tidyverse_style(indent_by = 4)
-)
+# styler::style_pkg(
+#     transformers = styler::tidyverse_style(indent_by = 4)
+# )
 
 
 # Checking <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

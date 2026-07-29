@@ -1,0 +1,298 @@
+---
+title: "NormScore with SummarizedExperiment and NormalyzedDE"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{NormScore with SummarizedExperiment and NormalyzedDE}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    collapse = TRUE,
+    comment = "#>",
+    fig.align = "center",
+    warning = FALSE,
+    message = FALSE
+)
+```
+
+## Introduction
+
+`SummarizedExperiment` is a standard Bioconductor container for storing
+high-dimensional molecular data together with feature and sample metadata.
+A single object can contain several assays, making it convenient for keeping
+the original data and multiple normalized versions aligned.
+
+This vignette illustrates how to:
+
+1. create a `SummarizedExperiment` object;
+2. store several normalized matrices as assays;
+3. extract the matrices and sample groups required by `normScore`;
+4. evaluate the normalization methods;
+5. add the resulting scores back to the object metadata.
+
+## Required packages
+
+```{r packages}
+library(normScore)
+library(SummarizedExperiment)
+```
+
+The packages used only in this vignette should be included in the
+`Suggests` field of the package `DESCRIPTION` file:
+
+```text
+Suggests:
+    BiocStyle,
+    knitr,
+    rmarkdown,
+    SummarizedExperiment
+VignetteBuilder: knitr
+```
+
+## Example data
+
+For illustration, we generate a small log-transformed abundance matrix using 
+`simulateData` function from `normScore` data package.
+
+Rows represent proteins and columns represent samples in logData and rawData 
+items from the output `simData` object.
+
+```{r example-data}
+simData <- simulateData(
+    nProteins = 500,
+    nPerGroup = 4,
+    sampleShiftSd = 0.12,
+    sampleShiftCap = 1,
+    sampleSdStrength = 1.2,
+    sampleSdRho = 0.3,
+    rhoWithin = 0.6,
+    rhoBetween = 0.3,
+    loadingSd = 0.45,
+    sigmaHi = 0.03,
+    sigmaLo = 0.4,
+    gammaSigma = 3.8,
+    kMnar = 1.6,
+    addMissing = FALSE,
+    seed = 456
+)
+
+rawData <- simData$rawData
+```
+
+
+## Build a SummarizedExperiment object
+
+The original and normalized matrices are stored as separate assays.
+Sample-level information is stored in `colData`, whereas optional
+feature-level annotations can be stored in `rowData`.
+
+```{r se-object}
+sampleData <- S4Vectors::DataFrame(
+    sample = simData$metadata$Samples,
+    group = simData$metadata$Groups
+)
+
+se <- SummarizedExperiment::SummarizedExperiment(
+    assays = list(rawData = rawData),
+    colData = sampleData,
+    metadata = list(
+        sample = "sample",
+        group = "group")
+)
+```
+
+## Normalization using NormalyzerDE
+
+Using normalyzerDE different normalization methods are simultaneously applied 
+to the input data.
+
+```{r normalize-data}
+normalyzerObject <- NormalyzerDE::getVerifiedNormalyzerObject(
+    jobName = "normScore_example",
+    summarizedExp = se,
+    noLogTransform = FALSE
+)
+
+normalyzerResults <- NormalyzerDE::normMethods(
+    normalyzerObject,
+    normalizeRetentionTime = FALSE
+)
+```
+
+
+## Prepare normScore inputs
+
+`normScore` evaluates a named list of matrices. We therefore extract the
+normalized assays from the `SummarizedExperiment` object.
+
+```{r prepare-normalized-list}
+normalizedDataList <- methods::slot(
+    normalyzerResults,
+    "normalizations"
+)
+```
+
+Setting rownames as some normalized matrices from normalyzerDE 
+lost protein rownames:
+
+```{r adjust-rownames}
+normalizedDataList <- lapply(
+    normalizedDataList,
+    function(x) {
+        rownames(x) <- rownames(rawData)
+        x
+    }
+)
+```
+
+The group information is constructed from `colData`. The sample order must
+match the matrix columns.
+
+```{r prepare-group-data}
+groupData <- data.frame(
+    Samples = sampleData$sample,
+    Groups = sampleData$group
+)
+
+stopifnot(
+    identical(groupData$Samples, colnames(rawData)),
+    all(vapply(
+        normalizedDataList,
+        function(x) identical(colnames(x), groupData$Samples),
+        logical(1)
+    ))
+)
+
+groupData
+```
+
+## Run normScore  {.tabset}
+
+The extracted objects can now be supplied to `normScore`.
+
+```{r run-normscore}
+normScoreResults <- normScore(
+    normalizedDataList = normalizedDataList,
+    groupData = groupData,
+    rawData = rawData
+)
+```
+
+Depending on the final argument names of the exported `normScore()`
+function, this call may need to be adapted to the current package API.
+
+The returned object can be inspected directly:
+
+```{r inspect-results}
+names(normScoreResults)
+
+normScoreResults$finalRanking
+```
+
+For example, the score or ranking table can be displayed after selecting
+the corresponding component returned by the package:
+
+```{r score-table}
+normScoreResults$detailRanking
+```
+
+Similarly, diagnostic plots can be accessed from the plotting component:
+
+```{r diagnostic-plots}
+allPlots <- plotNormScoreDiagnostics(
+    normalizedDataList = normalizedDataList, 
+    groupData = groupData, 
+    rawData = rawData
+)
+```
+
+
+```{r plotDiagn, echo = FALSE, results = "asis", fig.height=10, fig.width=8}
+for (individualPlot in names(allPlots)) {
+    cat("\n### ", individualPlot, " {-}\n\n")
+    print(allPlots[[individualPlot]])
+    cat("\n\n")
+}
+```
+
+## Store results in the SummarizedExperiment metadata
+
+Analysis-level information that is not naturally associated with individual
+features or samples can be stored in `metadata(se)`.
+
+```{r store-results}
+metadata(se)$normScore <- normScoreResults
+```
+
+The results can then be recovered without separating them from the data:
+
+```{r recover-results}
+storedResults <- metadata(se)$normScore
+names(storedResults)
+```
+
+A compact summary table may also be stored separately:
+
+```{r store-summary}
+metadata(se)$normalizationRanking <- normScoreResults$score
+```
+
+## Add a selected normalized assay
+
+Once a normalization method has been selected, its matrix can remain as an
+assay of the same object. For example, if median normalization is selected:
+
+```{r selected-assay}
+assay(se, "Selected") <- normalizedDataList$Quantile
+
+assayNames(se)
+```
+
+The selected assay can then be used in downstream Bioconductor workflows:
+
+```{r downstream-example}
+selectedData <- assay(se, "Selected")
+
+dim(selectedData)
+```
+
+## Working with an existing SummarizedExperiment
+
+For an existing object, the minimum workflow is:
+
+```{r compact-workflow, eval=FALSE}
+assayNames(se)
+colnames(se)
+colData(se)
+
+rawData <- assay(se, "Unnormalized")
+
+normalizationMethods <- c("Mean", "Median", "Quantile")
+
+normalizedDataList <- lapply(
+    normalizationMethods,
+    function(method) assay(se, method)
+)
+names(normalizedDataList) <- normalizationMethods
+
+groupData <- data.frame(
+    Samples = colnames(se),
+    Groups = as.character(colData(se)$group)
+)
+
+normScoreResults <- normScore(
+    normalizedDataList = normalizedDataList,
+    groupData = groupData,
+    rawData = rawData
+)
+
+metadata(se)$normScore <- normScoreResults
+```
+
+## Session information
+
+```{r session-info}
+sessionInfo()
+```

@@ -40,9 +40,21 @@ library(normScore)
 simData <- simulateData(
     nProteins = 500,
     nPerGroup = 4,
+    sampleShiftSd = 0.12,
+    sampleShiftCap = 1,
+    sampleSdStrength = 1.2,
+    sampleSdRho = 0.3,
+    rhoWithin = 0.6,
+    rhoBetween = 0.3,
+    loadingSd = 0.45,
+    sigmaHi = 0.03,
+    sigmaLo = 0.4,
+    gammaSigma = 3.8,
+    kMnar = 1.6,
     addMissing = FALSE,
     seed = 123
 )
+
 ```
 
 The simulated object contains three main elements:
@@ -72,10 +84,31 @@ log-scale data. In a real analysis, these would correspond to different
 normalization methods.
 
 ```{r normalization}
+# Median normalization
+MedianMat <- NormalyzerDE::medianNormalization(simData$rawData)
+colnames(MedianMat) <- colnames(simData$rawData)
+rownames(MedianMat) <- rownames(simData$rawData)
+
+# Quantile normalization
+QuantileMat <- limma::normalizeQuantiles(
+    simData$logData
+)
+colnames(QuantileMat) <- colnames(simData$logData)
+rownames(QuantileMat) <- rownames(simData$logData)
+
+
+# CyclicLoess normalization
+CyclicNorm <- limma::normalizeCyclicLoess(
+    simData$logData, method="fast",  adaptive.span=FALSE
+)
+
+
+# All together
 normalizedDataList <- list(
     Log = simData$logData,
-    Shifted = simData$logData + 0.1,
-    Scaled = simData$logData * 1.01
+    Median = MedianMat,
+    Quantile = QuantileMat, 
+    CyclicLoess = CyclicNorm
 )
 
 names(normalizedDataList)
@@ -91,7 +124,7 @@ result <- normScore(
     groupData = simData$metadata,
     rawData = simData$rawData,
     returnDetails = TRUE,
-    nBoot = 50
+    nBoot = 150
 )
 ```
 
@@ -129,7 +162,7 @@ These are scaled and combined into a final score.
 
 ## Bootstrap summary
 
-If `onlyFinalRanking = FALSE`, the function also computes bootstrap-based
+If `returnDetails = TRUE`, the function also computes bootstrap-based
 summary scores and confidence intervals.
 
 ```{r strSimulatedData}
@@ -169,10 +202,10 @@ names(allPlots)
 ```
 
 
-```{r displayDiagnosticPlots, echo = FALSE}
+```{r diagnPlots, echo = FALSE, results = "asis", fig.height=10, fig.width=8}
 for (individualPlot in names(allPlots)) {
     cat("\n### ", individualPlot, " {-}\n\n")
-    allPlots[[individualPlot]]
+    print(allPlots[[individualPlot]])
     cat("\n\n")
 }
 ```
@@ -189,6 +222,16 @@ distributional behavior or trend distortions introduced by normalization.
 The resulting score should therefore be interpreted as a comparative measure
 across candidate normalization methods rather than as an absolute quality
 index.
+
+## Important considerations
+
+Before running `normScore`, verify that:
+
+- all assays contain the same rows and columns;
+- feature and sample names are unique;
+- the order of `groupData$Samples` matches the assay columns;
+- missing values are represented consistently across assays;
+- every sample has a valid group assignment.
 
 ## Session information
 
