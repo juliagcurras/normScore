@@ -7,7 +7,7 @@
 #'
 #' @param nProteins `integer`. Number of proteins or features to simulate.
 #'   Default is `10000`.
-#' @param nPerGroup `integer`. Number of samples per group. 
+#' @param nPerGroup `integer`. Number of samples per group.
 #' Default is `20`.
 #' @param muMean `numeric`. Mean of the protein-wise abundance distribution on
 #'   the log2 scale. Default is `18`.
@@ -15,9 +15,9 @@
 #'   distribution on the log2 scale. Default is `1.2`.
 #' @param muClip `numeric` vector of length 2. Lower and upper bounds used to
 #'   truncate simulated protein means. Default is `c(15, 25)`.
-#' @param rhoWithin `numeric`. Within-group correlation target for the 
+#' @param rhoWithin `numeric`. Within-group correlation target for the
 #'   latent sample factor. Default is `0.85`.
-#' @param rhoBetween `numeric`. Between-group correlation target for the 
+#' @param rhoBetween `numeric`. Between-group correlation target for the
 #'   latent sample factor. Default is `0.55`.
 #' @param loadingSd `numeric`. Standard deviation of protein-specific loadings
 #'   for the correlated latent factor. Default is `0.25`.
@@ -25,7 +25,7 @@
 #'   Default is `0.05`.
 #' @param sigmaLo `numeric`. Residual standard deviation at low abundance.
 #'   Default is `0.4`.
-#' @param gammaSigma `numeric`. Controls how strongly residual variance 
+#' @param gammaSigma `numeric`. Controls how strongly residual variance
 #'   depends on abundance. Default is `2.5`.
 #' @param propDE `numeric`. Proportion of differentially expressed proteins.
 #'   Default is `0.35`.
@@ -48,7 +48,7 @@
 #' @param sampleSdStrength `numeric`. Strength of sample-specific mean-SD
 #'   dependence. A value of `0` implies independence. Default is `0`.
 #' @param sampleSdRho `numeric`. Correlation between sample mean rank and
-#'   sample-specific SD effect. Must lie between `0` and `1`. 
+#'   sample-specific SD effect. Must lie between `0` and `1`.
 #'   Default is `0.8`.
 #' @param sampleSdCap `numeric`. Maximum absolute value allowed for the
 #'   log-multiplier controlling sample-specific SD effects. Default is `0.35`.
@@ -56,22 +56,22 @@
 #'   Default is `TRUE`.
 #' @param targetMissing `numeric`. Target overall proportion of missing
 #'   Default is `0.001`.
-#' @param kMnar `numeric`. Strength of abundance dependence in the MNAR 
+#' @param kMnar `numeric`. Strength of abundance dependence in the MNAR
 #'    missing values. value mechanism. Default is `1.2`.
 #' @param missingBySampleSd `numeric`. Standard deviation of sample-specific
 #'   missingness shifts. Default is `0.05`.
-#' @param seed `integer`. Random seed used for reproducibility. 
+#' @param seed `integer`. Random seed used for reproducibility.
 #' Default is `9396`.
 #'
 #' @return
 #' A list with the following elements:
 #' \describe{
 #'   \item{logData}{Numeric matrix of simulated log2-scale data.}
-#'   \item{rawData}{Numeric matrix of simulated raw-scale data, obtained 
+#'   \item{rawData}{Numeric matrix of simulated raw-scale data, obtained
 #'   as `2^logData`.}
 #'   \item{metadata}{`data.frame` containing sample names and group labels.}
 #' }
-#' 
+#'
 #' @details
 #' The simulated data include several structured components:
 #' \enumerate{
@@ -83,7 +83,7 @@
 #'   \item Symmetric differential expression between the two groups.
 #'   \item Optional global sample shifts affecting overall intensity.
 #'   \item Optional sample-level mean-SD dependence.
-#'   \item Optional MNAR missingness driven by abundance and sample-specific 
+#'   \item Optional MNAR missingness driven by abundance and sample-specific
 #'   effects.
 #' }
 #' The output is intended for testing normalization methods and associated
@@ -91,11 +91,11 @@
 #'
 #' @examples
 #' simData <- simulateData(
-#'   nProteins = 1000,
-#'   nPerGroup = 5,
-#'   propDE = 0.2,
-#'   addMissing = TRUE,
-#'   seed = 123
+#'     nProteins = 1000,
+#'     nPerGroup = 5,
+#'     propDE = 0.2,
+#'     addMissing = TRUE,
+#'     seed = 123
 #' )
 #'
 #' dim(simData$logData)
@@ -133,11 +133,11 @@ simulateData <- function(
     missingBySampleSd = 0.05,
     seed = 9396
 ) {
-  args <- as.list(environment())
-  args$seed <- NULL
+    args <- as.list(environment())
+    args$seed <- NULL
 
-  withr::with_seed(
-    seed,
-    .simulateDataCore(args)
-  )
+    withr::with_seed(
+        seed,
+        .simulateDataCore(args)
+    )
 }

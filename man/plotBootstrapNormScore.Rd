@@ -23,10 +23,10 @@ Generates a point-range plot showing the mean bootstrap normScore and its
 }
 \examples{
 bootstrapScore <- data.frame(
-  normalization = c("Norm1", "Norm2", "Norm3"),
-  meanNormScore = c(0.8, 1.2, 1.5),
-  ll95 = c(0.6, 1.0, 1.2),
-  ul95 = c(1.0, 1.4, 1.8)
+    normalization = c("Norm1", "Norm2", "Norm3"),
+    meanNormScore = c(0.8, 1.2, 1.5),
+    ll95 = c(0.6, 1.0, 1.2),
+    ul95 = c(1.0, 1.4, 1.8)
 )
 
 result <- list(bootstrapScore = bootstrapScore)

@@ -53,21 +53,21 @@ simData <- simulateData(nProteins = 1000)
 
 # Normalyze ysing NormalyzerDE package
 normalizedDataList <- list(
-  Norm1 = simData$logData + 0.1,
-  Norm2 = simData$logData + 1,
-  Norm3 = simData$logData - 1,
-  Norm4 = simData$logData * 1.1,
-  Norm5 = simData$logData * 0.9,
-  Norm6 = simData$logData * runif(ncol(simData$logData), 0.8, 1.2)
+    Norm1 = simData$logData + 0.1,
+    Norm2 = simData$logData + 1,
+    Norm3 = simData$logData - 1,
+    Norm4 = simData$logData * 1.1,
+    Norm5 = simData$logData * 0.9,
+    Norm6 = simData$logData * runif(ncol(simData$logData), 0.8, 1.2)
 )
 
 # Compute ranking
 plotNormScoreDiagnostics(
-  normalizedDataList = normalizedDataList,
-  groupData = simData$metadata,
-  rawData = simData$rawData,
-  refGroup = NULL,
-  altGroup = NULL
- ) 
+    normalizedDataList = normalizedDataList,
+    groupData = simData$metadata,
+    rawData = simData$rawData,
+    refGroup = NULL,
+    altGroup = NULL
+)
 
 }

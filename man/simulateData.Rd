@@ -155,11 +155,11 @@ scoring procedures under controlled simulation settings.
 }
 \examples{
 simData <- simulateData(
-  nProteins = 1000,
-  nPerGroup = 5,
-  propDE = 0.2,
-  addMissing = TRUE,
-  seed = 123
+    nProteins = 1000,
+    nPerGroup = 5,
+    propDE = 0.2,
+    addMissing = TRUE,
+    seed = 123
 )
 
 dim(simData$logData)

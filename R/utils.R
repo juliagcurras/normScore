@@ -4,16 +4,16 @@
 #' including input validation, data formatting, and auxiliary computations.
 #'
 #' These functions are not intended to be used directly by end users.
-#' 
+#'
 
 #' Just some colors for graphical representation
 #'
 #' @description
-#' Serie of colors that represents the package, used for graphical 
+#' Serie of colors that represents the package, used for graphical
 #' representations.
 #'
 #' @param n Number of colors to retrieve
-#' 
+#'
 #' @return
 #' A `vector` with n colors.
 #'
@@ -21,9 +21,9 @@
 #' @noRd
 
 normScorePalette <- function(n) {
-  grDevices::colorRampPalette(
-    c("#003C72", "#005B9A", "#1786A3", "#2FB2AD", "#9FCFD1")
-  )(n)
+    grDevices::colorRampPalette(
+        c("#003C72", "#005B9A", "#1786A3", "#2FB2AD", "#9FCFD1")
+    )(n)
 }
 
 
@@ -45,27 +45,23 @@ normScorePalette <- function(n) {
 #' @noRd
 
 isSameNormalization <- function(x, y, tolerance = 1e-8) {
-  x <- as.matrix(x)
-  y <- as.matrix(y)
-  
-  if (!identical(dim(x), dim(y))) {
-    return(FALSE)
-  }
-  
-  if (!identical(rownames(x), rownames(y))) {
-    return(FALSE)
-  }
-  
-  if (!identical(colnames(x), colnames(y))) {
-    return(FALSE)
-  }
-  
-  isTRUE(all.equal(x, y, tolerance = tolerance, check.attributes = FALSE))
+    x <- as.matrix(x)
+    y <- as.matrix(y)
+
+    if (!identical(dim(x), dim(y))) {
+        return(FALSE)
+    }
+
+    if (!identical(rownames(x), rownames(y))) {
+        return(FALSE)
+    }
+
+    if (!identical(colnames(x), colnames(y))) {
+        return(FALSE)
+    }
+
+    isTRUE(all.equal(x, y, tolerance = tolerance, check.attributes = FALSE))
 }
-
-
-
-
 
 
 #' Ensure Presence of Log2-Transformed Data in a Normalization List
@@ -84,7 +80,7 @@ isSameNormalization <- function(x, y, tolerance = 1e-8) {
 #'
 #' @return
 #' A named list of normalized datasets, guaranteed to contain a
-#'  log2-transformed version of `rawData` under the name `"Log"`. If multiple 
+#'  log2-transformed version of `rawData` under the name `"Log"`. If multiple
 #' matching datasets are found, only the first one is kept.
 #'
 #'
@@ -95,44 +91,40 @@ isSameNormalization <- function(x, y, tolerance = 1e-8) {
 #' @noRd
 
 addLogIfMissing <- function(normalizedDataList, rawData, tolerance = 1e-8) {
-  if (any(rawData < 0, na.rm = TRUE)) {
-    stop(
-      "'rawData' contains values < 0, so log2 transformation cannot
-      be computed safely.",
-      call. = FALSE
-    )
-  }
-  
-  logData <- as.matrix(log(rawData, base = 2))
-  logData[is.infinite(logData)] <- NA
-  logData <- as.data.frame(logData)
-  
-  matchingIndex <- which(vapply(
-    normalizedDataList,
-    function(x) isSameNormalization(x, logData, tolerance = tolerance),
-    logical(1)
-  ))
-  
-  if (length(matchingIndex) == 0) {
-    normalizedDataList[["Log"]] <- logData
-    message("Log2-transformed raw data were added to 
-            'normalizedDataList' as 'Log'.")
-  } else {
-    names(normalizedDataList)[matchingIndex[1]] <- "Log"
-    
-    if (length(matchingIndex) > 1) {
-      normalizedDataList <- normalizedDataList[-matchingIndex[-1]]
-      message("Multiple log2-equivalent normalizations were found. 
-              The first one was kept and renamed to 'Log'.")
+    if (any(rawData < 0, na.rm = TRUE)) {
+        stop(
+            "'rawData' contains values < 0, so log2 transformation cannot
+            be computed safely.",
+            call. = FALSE
+        )
     }
-  }
-  
-  return(normalizedDataList)
+
+    logData <- as.matrix(log(rawData, base = 2))
+    logData[is.infinite(logData)] <- NA
+    logData <- as.data.frame(logData)
+
+    matchingIndex <- which(vapply(
+        normalizedDataList,
+        function(x) isSameNormalization(x, logData, tolerance = tolerance),
+        logical(1)
+    ))
+
+    if (length(matchingIndex) == 0) {
+        normalizedDataList[["Log"]] <- logData
+        message("Log2-transformed raw data were added to
+            'normalizedDataList' as 'Log'.")
+    } else {
+        names(normalizedDataList)[matchingIndex[1]] <- "Log"
+
+        if (length(matchingIndex) > 1) {
+            normalizedDataList <- normalizedDataList[-matchingIndex[-1]]
+            message("Multiple log2-equivalent normalizations were found.
+            The first one was kept and renamed to 'Log'.")
+        }
+    }
+
+    return(normalizedDataList)
 }
-
-
-
-
 
 
 #' Coefficient of Variation
@@ -144,7 +136,7 @@ addLogIfMissing <- function(normalizedDataList, rawData, tolerance = 1e-8) {
 #'
 #' @param x `numeric`. Numeric vector for which the coefficient of variation
 #'   will be calculated.
-#' @param proportion `logical`. If `TRUE`, the result is returned as a 
+#' @param proportion `logical`. If `TRUE`, the result is returned as a
 #' proportion.
 #'   If `FALSE`, it is multiplied by 100 and returned as a percentage.
 #'   Default is `TRUE`.
@@ -169,18 +161,13 @@ addLogIfMissing <- function(normalizedDataList, rawData, tolerance = 1e-8) {
 #' @noRd
 
 
-cv <- function(x, proportion =TRUE, na.rm = TRUE) {
-  coeficiente <- (stats::sd(x, na.rm = na.rm) / mean(x, na.rm = na.rm))
-  if (!proportion){
-    coeficiente <- coeficiente*100
-  }
-  return(coeficiente)
-} 
- 
-
-
-
-
+cv <- function(x, proportion = TRUE, na.rm = TRUE) {
+    coeficiente <- (stats::sd(x, na.rm = na.rm) / mean(x, na.rm = na.rm))
+    if (!proportion) {
+        coeficiente <- coeficiente * 100
+    }
+    return(coeficiente)
+}
 
 
 #' Mean Absolute Percentage Error
@@ -193,7 +180,7 @@ cv <- function(x, proportion =TRUE, na.rm = TRUE) {
 #' @param actual `numeric`. Vector of observed (true) values.
 #' @param predicted `numeric`. Vector of predicted values. Must have the same
 #'   length as `actual`.
-#' @param proportion `logical`. If `TRUE`, the result is returned as a 
+#' @param proportion `logical`. If `TRUE`, the result is returned as a
 #' proportion.
 #'   If `FALSE`, it is multiplied by 100 and returned as a percentage.
 #'   Default is `FALSE`.
@@ -216,15 +203,11 @@ cv <- function(x, proportion =TRUE, na.rm = TRUE) {
 #' @noRd
 
 
-mape <- function(actual, predicted, proportion = FALSE){
-  metric <- mean(abs((actual - predicted)/actual))
-  metric <- ifelse(!proportion, metric*100, metric)
-  return(metric)
-} 
-
-
-
-
+mape <- function(actual, predicted, proportion = FALSE) {
+    metric <- mean(abs((actual - predicted) / actual))
+    metric <- ifelse(!proportion, metric * 100, metric)
+    return(metric)
+}
 
 
 #' Compute RLE-based MAPE metric
@@ -245,39 +228,38 @@ mape <- function(actual, predicted, proportion = FALSE){
 #' @noRd
 
 rleMAPE <- function(data, plotData = FALSE) {
-  rowMedians <- apply(data, 1, stats::median, na.rm = TRUE)
-  
-  # rleData <- as.data.frame(t(t(data) / rowMedians))
-  rleData <- data - rowMedians
-  
-  if (plotData){
-    return(rleData)
-  }
-  
-  rleData <- 2^rleData
-  
-  # sampleMedians <- apply(rleData, 2, stats::median, na.rm = TRUE)
-  # sampleMedians <- 2^sampleMedians # No log for MAPE
-  
-  sampleQuantiles <- apply(rleData, 2, stats::quantile, 
-                           na.rm = TRUE, simplify = FALSE)
-  q1 <- vapply(X = sampleQuantiles, FUN = "[[", FUN.VALUE =  numeric(1),  2)
-  sampleMedians <- vapply(X = sampleQuantiles, FUN = "[[",
-                          FUN.VALUE =  numeric(1), 3)
-  q3 <- vapply(X = sampleQuantiles, FUN = "[[", FUN.VALUE =  numeric(1), 4)
-  
-  finalMetric <- 
-    mape(actual = 1, predicted = sampleMedians, proportion = TRUE) +
-    mape(actual = stats::median(q1), predicted = q1, proportion = TRUE) +
-    mape(actual = stats::median(q3), predicted = q3, proportion = TRUE)
-  
-  # return(mape(actual = 1, predicted = sampleMedians, proportion = FALSE))
-  return(finalMetric)
-} 
+    rowMedians <- apply(data, 1, stats::median, na.rm = TRUE)
 
+    # rleData <- as.data.frame(t(t(data) / rowMedians))
+    rleData <- data - rowMedians
 
+    if (plotData) {
+        return(rleData)
+    }
 
+    rleData <- 2^rleData
 
+    # sampleMedians <- apply(rleData, 2, stats::median, na.rm = TRUE)
+    # sampleMedians <- 2^sampleMedians # No log for MAPE
+
+    sampleQuantiles <- apply(rleData, 2, stats::quantile,
+        na.rm = TRUE, simplify = FALSE
+    )
+    q1 <- vapply(X = sampleQuantiles, FUN = "[[", FUN.VALUE = numeric(1), 2)
+    sampleMedians <- vapply(
+        X = sampleQuantiles, FUN = "[[",
+        FUN.VALUE = numeric(1), 3
+    )
+    q3 <- vapply(X = sampleQuantiles, FUN = "[[", FUN.VALUE = numeric(1), 4)
+
+    finalMetric <-
+        mape(actual = 1, predicted = sampleMedians, proportion = TRUE) +
+        mape(actual = stats::median(q1), predicted = q1, proportion = TRUE) +
+        mape(actual = stats::median(q3), predicted = q3, proportion = TRUE)
+
+    # return(mape(actual = 1, predicted = sampleMedians, proportion = FALSE))
+    return(finalMetric)
+}
 
 
 #' Quantile-Based MAPE Consistency Metric
@@ -324,25 +306,26 @@ rleMAPE <- function(data, plotData = FALSE) {
 #' @noRd
 
 tiMAPE <- function(data) {
-  sampleQuantiles <- apply(data, 2, stats::quantile, 
-                           na.rm = TRUE, simplify = FALSE)
-  q1 <- vapply(X = sampleQuantiles, FUN = "[[", FUN.VALUE =  numeric(1), 2)
-  sampleMedians <- vapply(X = sampleQuantiles, FUN = "[[", 
-                          FUN.VALUE = numeric(1), 3)
-  q3 <- vapply(X = sampleQuantiles, FUN = "[[", FUN.VALUE = numeric(1), 4)
-  
-  finalMetric <- 
-    mape(actual = stats::median(sampleMedians), predicted = sampleMedians, 
-         proportion = TRUE) +
-    mape(actual = stats::median(q1), predicted = q1, proportion = TRUE) +
-    mape(actual = stats::median(q3), predicted = q3, proportion = TRUE)
-  
-  return(finalMetric)
-} 
+    sampleQuantiles <- apply(data, 2, stats::quantile,
+        na.rm = TRUE, simplify = FALSE
+    )
+    q1 <- vapply(X = sampleQuantiles, FUN = "[[", FUN.VALUE = numeric(1), 2)
+    sampleMedians <- vapply(
+        X = sampleQuantiles, FUN = "[[",
+        FUN.VALUE = numeric(1), 3
+    )
+    q3 <- vapply(X = sampleQuantiles, FUN = "[[", FUN.VALUE = numeric(1), 4)
 
+    finalMetric <-
+        mape(
+            actual = stats::median(sampleMedians), predicted = sampleMedians,
+            proportion = TRUE
+        ) +
+        mape(actual = stats::median(q1), predicted = q1, proportion = TRUE) +
+        mape(actual = stats::median(q3), predicted = q3, proportion = TRUE)
 
-
-
+    return(finalMetric)
+}
 
 
 #' Mean Absolute Area Difference Between Predicted and Expected Lines
@@ -377,7 +360,7 @@ tiMAPE <- function(data) {
 #'
 #' If the crossing point lies within the interval, the area is computed as the
 #' sum of the two signed sub-areas on either side of the intersection.
-#' If no crossing occurs within the interval, the area is computed directly 
+#' If no crossing occurs within the interval, the area is computed directly
 #' over the full range.
 #'
 #' The final area metric is normalized by dividing by:
@@ -390,44 +373,39 @@ tiMAPE <- function(data) {
 #' @keywords internal
 #' @noRd
 
-diffAreas <- function(intPred, coefPred, minRange, maxRange, intExpected = 0){
-  
-  # # Moving regression lines to reach B=0, a=0
-  intPred <- intPred - intExpected
-  
-  if (coefPred < 0){
-    a <- 1
-    b <- -1
-  } else if (coefPred > 0){
-    a <- -1
-    b <- 1
-  } else if (coefPred == 0){
-    return(0)
-  }
-  
-  # Cutpoint regression line with expected line
-  cpX <- (-intPred)/coefPred
-  cpY <- 0
-  
-  # Is cutpoint located inside the range?
-  if (all(cpX >= minRange, cpX <= maxRange)){
-    area1 <- coefPred*a*(((minRange + (intPred/coefPred))^2)/2 - 
-                           ((cpX + (intPred/coefPred))^2)/2)
-    area2 <- coefPred*b*(((cpX + (intPred/coefPred))^2)/2 - 
-                           ((maxRange + (intPred/coefPred))^2)/2)
-    areaMetric <- abs(area1+area2)
-  } else if (any(cpX < minRange, cpX > maxRange)){
-    areaMetric <- abs(coefPred*(((maxRange + (intPred/coefPred))^2)/2 - 
-                                  ((minRange + (intPred/coefPred))^2)/2))
-  }
-  
-  areaMetric <- areaMetric/(maxRange-minRange)
-  return(areaMetric)
-} 
+diffAreas <- function(intPred, coefPred, minRange, maxRange, intExpected = 0) {
+    # # Moving regression lines to reach B=0, a=0
+    intPred <- intPred - intExpected
 
+    if (coefPred < 0) {
+        a <- 1
+        b <- -1
+    } else if (coefPred > 0) {
+        a <- -1
+        b <- 1
+    } else if (coefPred == 0) {
+        return(0)
+    }
 
+    # Cutpoint regression line with expected line
+    cpX <- (-intPred) / coefPred
+    cpY <- 0
 
+    # Is cutpoint located inside the range?
+    if (all(cpX >= minRange, cpX <= maxRange)) {
+        area1 <- coefPred * a * (((minRange + (intPred / coefPred))^2) / 2 -
+            ((cpX + (intPred / coefPred))^2) / 2)
+        area2 <- coefPred * b * (((cpX + (intPred / coefPred))^2) / 2 -
+            ((maxRange + (intPred / coefPred))^2) / 2)
+        areaMetric <- abs(area1 + area2)
+    } else if (any(cpX < minRange, cpX > maxRange)) {
+        areaMetric <- abs(coefPred *(((maxRange + (intPred/coefPred))^2)/ 2 -
+            ((minRange + (intPred / coefPred))^2) / 2))
+    }
 
+    areaMetric <- areaMetric / (maxRange - minRange)
+    return(areaMetric)
+}
 
 
 #' Mean-SD Trend Area Metric Across Samples
@@ -473,46 +451,42 @@ diffAreas <- function(intPred, coefPred, minRange, maxRange, intExpected = 0){
 #' @noRd
 
 meanSDdiffArea <- function(data, plotData = FALSE) {
-  sampleMeans <- apply(data, 2, base::mean, na.rm = TRUE)
-  sampleSDs <- apply(data, 2, stats::sd, na.rm = TRUE)
-  
-  dfAux <- data.frame(
-    Mean = sampleMeans,
-    SD = sampleSDs,
-    Sample = colnames(data)
-  )
-  
-  dfAux <- dfAux[order(dfAux$Mean), ]
-  dfAux$Order <- seq_len(nrow(dfAux))
-  
-  if (plotData){
-    return(dfAux)
-  }
-  
-  fit <- stats::lm(SD ~ Order, data = dfAux)
-  slope <- fit$coefficients["Order"]
-  
-  resultArea <- diffAreas(
-    intPred = 0,
-    coefPred = slope,
-    maxRange = max(dfAux$Order),
-    minRange = min(dfAux$Order),
-    intExpected = 0
-  )
-  
-  return(unname(resultArea))
-} 
+    sampleMeans <- apply(data, 2, base::mean, na.rm = TRUE)
+    sampleSDs <- apply(data, 2, stats::sd, na.rm = TRUE)
 
+    dfAux <- data.frame(
+        Mean = sampleMeans,
+        SD = sampleSDs,
+        Sample = colnames(data)
+    )
 
+    dfAux <- dfAux[order(dfAux$Mean), ]
+    dfAux$Order <- seq_len(nrow(dfAux))
 
+    if (plotData) {
+        return(dfAux)
+    }
 
+    fit <- stats::lm(SD ~ Order, data = dfAux)
+    slope <- fit$coefficients["Order"]
+
+    resultArea <- diffAreas(
+        intPred = 0,
+        coefPred = slope,
+        maxRange = max(dfAux$Order),
+        minRange = min(dfAux$Order),
+        intExpected = 0
+    )
+
+    return(unname(resultArea))
+}
 
 
 #' MA-Trend Area Metric with Shape Correction
 #'
 #' @description
-#' Computes an area-based metric to quantify deviation from an expected MA 
-#' trend, combining both slope/intercept deviation and shape consistency across 
+#' Computes an area-based metric to quantify deviation from an expected MA
+#' trend, combining both slope/intercept deviation and shape consistency across
 #' the expression range.
 #'
 #' The function first computes an MA-like representation from two groups of
@@ -545,7 +519,7 @@ meanSDdiffArea <- function(data, plotData = FALSE) {
 #'   \item Removes rows with missing values.
 #'   \item Computes `logFC` as the difference between the mean of group 2 and
 #'   the mean of group 1 for each row.
-#'   \item Computes `AveExpr` as the average of the two group means 
+#'   \item Computes `AveExpr` as the average of the two group means
 #'   for each row.
 #'   \item Divides `AveExpr` into 10 bins and computes the IQR of `logFC` in
 #'   each bin.
@@ -553,7 +527,7 @@ meanSDdiffArea <- function(data, plotData = FALSE) {
 #'   using Spearman correlation, and transforms the result into a correction
 #'   factor ranging from 0.1 to 1.
 #'   \item Fits a linear model of `logFC ~ AveExpr`.
-#'   \item Computes the normalized area between the fitted line and the 
+#'   \item Computes the normalized area between the fitted line and the
 #'   expected horizontal line `y = 0` using \code{\link{diffAreas}}.
 #'   \item Multiplies the area metric by the shape correction factor.
 #' }
@@ -572,53 +546,54 @@ meanSDdiffArea <- function(data, plotData = FALSE) {
 #' @noRd
 
 maDiffArea <- function(data, samplesG1, samplesG2, plotData = FALSE) {
-  data <- as.data.frame(data)
-  maData <- data[, c(samplesG1, samplesG2)]
-  maData <- stats::na.omit(maData)
-  
-  maData$logFC <- apply(maData, 1, function(x) {
-    mean(x[samplesG2], na.rm = TRUE) - mean(x[samplesG1], na.rm = TRUE)
-  })
-  
-  maData$AveExpr <- apply(maData, 1, function(x) {
-    (mean(x[samplesG2], na.rm = TRUE) + mean(x[samplesG1], na.rm = TRUE))/2
-  })
-  
-  if (plotData){
-    df <- as.data.frame(maData[, c("AveExpr", "logFC")])
-    colnames(df) <- c("A", "M")
-    return(df)
-  }
-  
-  expressionDeciles <- stats::quantile(maData$AveExpr, probs = seq(0, 1, 0.1))
-  
-  iqrByBin <- vapply(seq_len(length(expressionDeciles) - 1), function(i) {
-    logFCValues <- maData$logFC[
-      maData$AveExpr > expressionDeciles[i] &
-        maData$AveExpr <= expressionDeciles[i + 1]]
-    stats::IQR(logFCValues, na.rm = TRUE)
-  }, numeric(1))
-  
-  rho <- stats::cor(iqrByBin, 10:1, method = "spearman")
-  rho <- (1 - rho) / 2
-  shapeCorrectionFactor <- 0.1 + (1 - 0.1) * rho
-  
-  maData <- maData[, c("logFC", "AveExpr")]
-  
-  fit <- stats::lm(logFC ~ AveExpr, data = maData)
-  slope <- fit$coefficients["AveExpr"]
-  intercept <- fit$coefficients["(Intercept)"]
-  
-  resultArea <- diffAreas(
-    intPred = intercept,
-    coefPred = slope,
-    maxRange = max(maData$AveExpr),
-    minRange = min(maData$AveExpr),
-    intExpected = 0
-  )
-  
-  correctedMetric <- unname(resultArea) * shapeCorrectionFactor
-  return(correctedMetric)
+    data <- as.data.frame(data)
+    maData <- data[, c(samplesG1, samplesG2)]
+    maData <- stats::na.omit(maData)
+
+    maData$logFC <- apply(maData, 1, function(x) {
+        mean(x[samplesG2], na.rm = TRUE) - mean(x[samplesG1], na.rm = TRUE)
+    })
+
+    maData$AveExpr <- apply(maData, 1, function(x) {
+        (mean(x[samplesG2], na.rm = TRUE) + mean(x[samplesG1], na.rm = TRUE))/2
+    })
+
+    if (plotData) {
+        df <- as.data.frame(maData[, c("AveExpr", "logFC")])
+        colnames(df) <- c("A", "M")
+        return(df)
+    }
+
+    expressionDeciles <- stats::quantile(maData$AveExpr, probs = seq(0, 1, 0.1))
+
+    iqrByBin <- vapply(seq_len(length(expressionDeciles) - 1), function(i) {
+        logFCValues <- maData$logFC[
+            maData$AveExpr > expressionDeciles[i] &
+                maData$AveExpr <= expressionDeciles[i + 1]
+        ]
+        stats::IQR(logFCValues, na.rm = TRUE)
+    }, numeric(1))
+
+    rho <- stats::cor(iqrByBin, 10:1, method = "spearman")
+    rho <- (1 - rho) / 2
+    shapeCorrectionFactor <- 0.1 + (1 - 0.1) * rho
+
+    maData <- maData[, c("logFC", "AveExpr")]
+
+    fit <- stats::lm(logFC ~ AveExpr, data = maData)
+    slope <- fit$coefficients["AveExpr"]
+    intercept <- fit$coefficients["(Intercept)"]
+
+    resultArea <- diffAreas(
+        intPred = intercept,
+        coefPred = slope,
+        maxRange = max(maData$AveExpr),
+        minRange = min(maData$AveExpr),
+        intExpected = 0
+    )
+
+    correctedMetric <- unname(resultArea) * shapeCorrectionFactor
+    return(correctedMetric)
 }
 
 
@@ -626,32 +601,29 @@ maDiffArea <- function(data, samplesG1, samplesG2, plotData = FALSE) {
 #'
 #' @description
 #' Small function just to estimate mean, lower limit and upper limit for a
-#' given set of values. 
-#' 
+#' given set of values.
+#'
 #' @keywords internal
 #' @noRd
 
 getMeanCI <- function(
-    var, 
+    var,
     nconf = 95
-  ){
-  if (!is.numeric(var)) {
-    stop("The current variable is not numeric.")
-  }
-  meanVar <- mean(var, na.rm = TRUE)
-  sdVar <- stats::sd(var, na.rm = TRUE)
-  nVar <- length(stats::na.omit(var))
-  nconf <- (1 - nconf/100)/2
-  
-  quantilT <- stats::qt(nconf, df = (nVar - 1), lower.tail = FALSE)
-  li <- meanVar - quantilT * (sdVar/sqrt(nVar))
-  ls <- meanVar + quantilT * (sdVar/sqrt(nVar))
-  
-  return(c(meanVar, li, ls))
+) {
+    if (!is.numeric(var)) {
+        stop("The current variable is not numeric.")
+    }
+    meanVar <- mean(var, na.rm = TRUE)
+    sdVar <- stats::sd(var, na.rm = TRUE)
+    nVar <- length(stats::na.omit(var))
+    nconf <- (1 - nconf / 100) / 2
+
+    quantilT <- stats::qt(nconf, df = (nVar - 1), lower.tail = FALSE)
+    li <- meanVar - quantilT * (sdVar / sqrt(nVar))
+    ls <- meanVar + quantilT * (sdVar / sqrt(nVar))
+
+    return(c(meanVar, li, ls))
 }
-
-
-
 
 
 #' Coefficient of Variation per Protein Within a Group
@@ -678,7 +650,7 @@ getMeanCI <- function(
 #' @details
 #' The function performs the following steps:
 #' \enumerate{
-#'   \item Identifies the samples belonging to the specified group using 
+#'   \item Identifies the samples belonging to the specified group using
 #'   `groupData`.
 #'   \item Subsets `data` to those samples.
 #'   \item Computes the coefficient of variation for each row using
@@ -695,22 +667,20 @@ getMeanCI <- function(
 #' @noRd
 
 groupProteinCV <- function(group, groupData, data) {
-  groupData <- as.data.frame(groupData)
-  data <- as.data.frame(data)
-  
-  selectedSamples <- as.vector(unlist(groupData[groupData$Groups == group, 
-                                                "Samples"]))
-  
-  subsetData <- data[, as.character(selectedSamples)]
-  apply(subsetData, 1, cv, proportion = FALSE)
-} 
+    groupData <- as.data.frame(groupData)
+    data <- as.data.frame(data)
+
+    selectedSamples <- as.vector(unlist(groupData[
+        groupData$Groups == group,
+        "Samples"
+    ]))
+
+    subsetData <- data[, as.character(selectedSamples)]
+    apply(subsetData, 1, cv, proportion = FALSE)
+}
 
 
-
-
-
-
-#' Pooled Coefficient of Variation 
+#' Pooled Coefficient of Variation
 #'
 #' @description
 #' Computes the mean coefficient of variation (CV) across groups for each
@@ -725,7 +695,7 @@ groupProteinCV <- function(group, groupData, data) {
 #'   represent proteins or features and columns represent samples.
 #' @param groups A vector specifying the groups for which CV values should be
 #'   calculated.
-#' @param groupData `data.frame` containing the group annotation or 
+#' @param groupData `data.frame` containing the group annotation or
 #'    sample-group mapping required by \code{\link{groupProteinCV}}.
 #'
 #' @return
@@ -750,43 +720,43 @@ groupProteinCV <- function(group, groupData, data) {
 #' @keywords internal
 #' @noRd
 
-getPCV <- function(data, groups, groupData, plotData = FALSE){
-  groupDataProt <- as.data.frame(
-    vapply(groups, groupProteinCV, numeric(nrow(data)),
-           groupData = groupData, 
-           data = data))
-  rownames(groupDataProt) <- rownames(data)
-  colnames(groupDataProt) <- groups
-  
-  if (!plotData){ # for normScore estimation and boxplot representation (>5)
-    meanVal <- apply(groupDataProt, 2, mean, na.rm = TRUE)
-    names(meanVal) <- colnames(groupDataProt)
-    return(meanVal)
-  } else if (plotData){ # for normScore estimation
-    dfCI <- as.vector(
-      as.matrix(
-          apply(
-            X = groupDataProt, 
-            MARGIN = 2, 
-            FUN = getMeanCI) 
+getPCV <- function(data, groups, groupData, plotData = FALSE) {
+    groupDataProt <- as.data.frame(
+        vapply(groups, groupProteinCV, numeric(nrow(data)),
+            groupData = groupData,
+            data = data
         )
-      )
-    
-    names(dfCI) <- as.vector(
-      vapply(
-        X = groups, 
-        FUN = paste0, 
-        FUN.VALUE = character(3),
-        c(": Mean CV", ": LL", ": UL"), 
-        simplify = TRUE
+    )
+    rownames(groupDataProt) <- rownames(data)
+    colnames(groupDataProt) <- groups
+
+    if (!plotData) { # for normScore estimation and boxplot representation (>5)
+        meanVal <- apply(groupDataProt, 2, mean, na.rm = TRUE)
+        names(meanVal) <- colnames(groupDataProt)
+        return(meanVal)
+    } else if (plotData) { # for normScore estimation
+        dfCI <- as.vector(
+            as.matrix(
+                apply(
+                    X = groupDataProt,
+                    MARGIN = 2,
+                    FUN = getMeanCI
+                )
+            )
         )
-      )
-    return(dfCI)
-  }
-  
-} 
 
-
+        names(dfCI) <- as.vector(
+            vapply(
+                X = groups,
+                FUN = paste0,
+                FUN.VALUE = character(3),
+                c(": Mean CV", ": LL", ": UL"),
+                simplify = TRUE
+            )
+        )
+        return(dfCI)
+    }
+}
 
 
 #' Pairwise Correlations Within Groups
@@ -828,31 +798,29 @@ getPCV <- function(data, groups, groupData, plotData = FALSE){
 #' @noRd
 
 withinGroupCorrelations <- function(data, groupData, method = "spearman") {
-  data <- as.data.frame(data)
-  groupData <- as.data.frame(groupData)
-  
-  allCorrelations <- lapply(unique(groupData$Groups), function(group) {
-    samplesByGroup <- groupData[groupData$Groups == group, "Samples"]
-    
-    groupMatrix <- data[, samplesByGroup, drop = FALSE]
-    
-    corMatrix <- stats::cor(groupMatrix, use = "pairwise.complete.obs", 
-                            method = method)
-    
-    corValues <- c()
-    for (i in seq_len(ncol(groupMatrix) - 1)) {
-      corValues <- c(corValues, corMatrix[i, -(seq_len(i))])
-    }
-    
-    corValues
-  })
-  
-  unlist(allCorrelations, use.names = FALSE)
+    data <- as.data.frame(data)
+    groupData <- as.data.frame(groupData)
+
+    allCorrelations <- lapply(unique(groupData$Groups), function(group) {
+        samplesByGroup <- groupData[groupData$Groups == group, "Samples"]
+
+        groupMatrix <- data[, samplesByGroup, drop = FALSE]
+
+        corMatrix <- stats::cor(groupMatrix,
+            use = "pairwise.complete.obs",
+            method = method
+        )
+
+        corValues <- c()
+        for (i in seq_len(ncol(groupMatrix) - 1)) {
+            corValues <- c(corValues, corMatrix[i, -(seq_len(i))])
+        }
+
+        corValues
+    })
+
+    unlist(allCorrelations, use.names = FALSE)
 }
-
-
-
-
 
 
 #' Compute within-group correlation item
@@ -876,46 +844,43 @@ withinGroupCorrelations <- function(data, groupData, method = "spearman") {
 
 
 computeCorrelation <- function(
-    normalizedDataList, 
-    groupData, 
-    method, 
-    plotData = FALSE)
-  {
-  dfCor <- lapply(
     normalizedDataList,
-    withinGroupCorrelations,
-    groupData = groupData,
-    method = method)
-  
-  if (!plotData){
-    vapply(
-      dfCor,
-      function(correlationValues) {
-        1 - (stats::median(correlationValues, na.rm = TRUE) -
-               stats::IQR(correlationValues, na.rm = TRUE) / 3)
-      },
-      numeric(1)
+    groupData,
+    method,
+    plotData = FALSE
+) {
+    dfCor <- lapply(
+        normalizedDataList,
+        withinGroupCorrelations,
+        groupData = groupData,
+        method = method
     )
-  } else if (plotData) {
-    maxLength <- max(lengths(dfCor))
-    
-    data.frame(
-      vapply(
-        dfCor,
-        function(x) {
-          length(x) <- maxLength
-          x
-        },
-        numeric(maxLength)
-      ),
-      check.names = FALSE
-    )
-  }
-  
+
+    if (!plotData) {
+        vapply(
+            dfCor,
+            function(correlationValues) {
+                1 - (stats::median(correlationValues, na.rm = TRUE) -
+                    stats::IQR(correlationValues, na.rm = TRUE) / 3)
+            },
+            numeric(1)
+        )
+    } else if (plotData) {
+        maxLength <- max(lengths(dfCor))
+
+        data.frame(
+            vapply(
+                dfCor,
+                function(x) {
+                    length(x) <- maxLength
+                    x
+                },
+                numeric(maxLength)
+            ),
+            check.names = FALSE
+        )
+    }
 }
-
-
-
 
 
 #' Bootstrap Total Scores After Row Resampling
@@ -951,8 +916,7 @@ computeCorrelation <- function(
 #' @noRd
 
 bootstrapRowScores <- function(data, indices) {
-  resampledMatrix <- data[indices, , drop = FALSE]
-  totalScores <- colSums(resampledMatrix)
-  return(totalScores)
+    resampledMatrix <- data[indices, , drop = FALSE]
+    totalScores <- colSums(resampledMatrix)
+    return(totalScores)
 }
-

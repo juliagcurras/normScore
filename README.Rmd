@@ -40,7 +40,6 @@ We strongly recommend using this score in comination with the graphical represen
 devtools::install_github("juliagcurras/normScore")
 
 # Stable
-
 ```
 
 
@@ -63,15 +62,15 @@ library(normScore)
 
 # Simulate example data
 simData <- normScore::simulateData(
-  nProteins = 100, 
-  seed = 9396
+    nProteins = 100,
+    seed = 9396
 ) # List with 3 elements: raw data matrix | Log-transformed matrix | Metadata
 
 # Create a list with all normalizations
 listData <- list(
-  Log = simData$logData, 
-  Method1 = simData$logData+0.1, 
-  Method2 = simData$logData+0.5
+    Log = simData$logData,
+    Method1 = simData$logData + 0.1,
+    Method2 = simData$logData + 0.5
 )
 ```
 
@@ -80,24 +79,25 @@ Once you gathered all input data, *normScore* is ready to be executed!
 ```{r echo = TRUE}
 # Compare normalization methods with normScore
 normScore(
-  normalizedDataList = listData,
-  groupData = simData$metadata,
-  rawData = simData$rawData,
-  refGroup = NULL, # if non-stated, a random group will be picked as reference
-  altGroup = NULL, # if non-stated, a random group will be picked as alternative
-  onlyFinalRanking = TRUE 
+    normalizedDataList = listData,
+    groupData = simData$metadata,
+    rawData = simData$rawData,
+    refGroup = NULL, # if non-stated, a random group will be picked as reference
+    altGroup = NULL, # if non-stated, a random group will be picked as alternative
+    onlyFinalRanking = TRUE
 )
 ```
 
 
 ```{r eval = FALSE, echo = FALSE, include = FALSE}
-####------------       BASIC CODE FOR BUILDING THE PACKAGE      ------------####
+#### ------------       BASIC CODE FOR BUILDING THE PACKAGE      ------------####
 
 setwd("C:/Users/julia/Documents/GitHub/normScore") #<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 # Devel branch
-if (!requireNamespace("BiocManager", quietly=TRUE))
-  install.packages("BiocManager")
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+    install.packages("BiocManager")
+}
 BiocManager::install(version = "devel")
 BiocManager::version()
 BiocManager::valid()
@@ -138,14 +138,17 @@ usethis::use_r("simulateData")
 roxygen2::roxygenise() # man folder
 devtools::document()
 devtools::build_manual() # requires latex
+styler::style_pkg(
+    transformers = styler::tidyverse_style(indent_by = 4)
+)
 
 
 # Checking <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 devtools::test()
-devtools::check()
 devtools::run_examples()
+devtools::check()
 BiocCheck::BiocCheckGitClone()
-BiocCheck::BiocCheck('new-package'=TRUE)
+BiocCheck::BiocCheck("new-package" = TRUE)
 
 
 # Installing <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -158,7 +161,48 @@ usethis::use_version("minor")
 devtools::check() # A menudo da pequeños errores pero sigue dejando tirar
 devtools::build_manual(pkg = ".", path = getwd()) # Construye el manual en PDF
 devtools::build()
-
 ```
+
+
+```{r eval = FALSE, echo = FALSE, include = FALSE}
+find_bad_indents <- function(path) {
+    files <- list.files(
+        path,
+        pattern = "\\.(R|Rd)$",
+        recursive = TRUE,
+        full.names = TRUE
+    )
+
+    out <- lapply(files, function(file) {
+        x <- readLines(file, warn = FALSE)
+        ws <- sub("^([[:space:]]*).*", "\\1", x)
+        n <- nchar(gsub("\t", "    ", ws, fixed = TRUE))
+
+        bad <- which(
+            nzchar(trimws(x)) &
+                n %% 4L != 0L
+        )
+
+        if (!length(bad)) {
+            return(NULL)
+        }
+
+        data.frame(
+            file = file,
+            line = bad,
+            spaces = n[bad],
+            text = x[bad],
+            stringsAsFactors = FALSE
+        )
+    })
+
+    do.call(rbind, out)
+}
+badR <- find_bad_indents("R")
+badR
+badMan <- find_bad_indents("man")
+badMan
+```
+
 
 

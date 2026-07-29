@@ -9,10 +9,10 @@ vignette: >
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.width = 7,
-  fig.height = 5
+    collapse = TRUE,
+    comment = "#>",
+    fig.width = 7,
+    fig.height = 5
 )
 ```
 
@@ -38,10 +38,10 @@ data simulation function that generates proteomics-like two-group datasets.
 library(normScore)
 
 simData <- simulateData(
-  nProteins = 500,
-  nPerGroup = 4,
-  addMissing = FALSE,
-  seed = 123
+    nProteins = 500,
+    nPerGroup = 4,
+    addMissing = FALSE,
+    seed = 123
 )
 ```
 
@@ -73,9 +73,9 @@ normalization methods.
 
 ```{r normalization}
 normalizedDataList <- list(
-  Log = simData$logData,
-  Shifted = simData$logData + 0.1,
-  Scaled = simData$logData * 1.01
+    Log = simData$logData,
+    Shifted = simData$logData + 0.1,
+    Scaled = simData$logData * 1.01
 )
 
 names(normalizedDataList)
@@ -87,11 +87,11 @@ We now compute the normalization ranking.
 
 ```{r normScoreUsage}
 result <- normScore(
-  normalizedDataList = normalizedDataList,
-  groupData = simData$metadata,
-  rawData = simData$rawData,
-  returnDetails = TRUE,
-  nBoot = 50
+    normalizedDataList = normalizedDataList,
+    groupData = simData$metadata,
+    rawData = simData$rawData,
+    returnDetails = TRUE,
+    nBoot = 50
 )
 ```
 
@@ -160,7 +160,8 @@ visualed with the following function:
 allPlots <- plotNormScoreDiagnostics(
     normalizedDataList = normalizedDataList,
     groupData = simData$metadata,
-    rawData = simData$rawData)
+    rawData = simData$rawData
+)
 
 names(allPlots)
 
@@ -169,10 +170,10 @@ names(allPlots)
 
 
 ```{r displayDiagnosticPlots, echo = FALSE}
-for (individualPlot in names(allPlots)){
-  cat("\n### ", individualPlot, " {-}\n\n")
-  allPlots[[individualPlot]]
-  cat("\n\n")
+for (individualPlot in names(allPlots)) {
+    cat("\n### ", individualPlot, " {-}\n\n")
+    allPlots[[individualPlot]]
+    cat("\n\n")
 }
 ```
 

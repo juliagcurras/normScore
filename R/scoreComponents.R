@@ -1,4 +1,3 @@
-
 #' Validate and prepare inputs for normScore
 #'
 #' Checks the input objects used by `normScore()`, including group annotation,
@@ -8,10 +7,10 @@
 #' identifies whether the analysis contains a single group.
 #'
 #' @param normalizedDataList A named list of normalized data matrices or data
-#'   frames. Each element should contain proteins in rows and samples 
+#'   frames. Each element should contain proteins in rows and samples
 #'   in columns.
 #' @param groupData A data frame or object coercible to a data frame containing
-#'   sample-group annotation. The first column is assumed to contain sample 
+#'   sample-group annotation. The first column is assumed to contain sample
 #'   names and the second column group labels.
 #' @param rawData A matrix or data frame containing raw intensity values, with
 #'   proteins in rows and samples in columns.
@@ -23,7 +22,7 @@
 #'    should be returned by `normScore()`.
 #' @param nBoot Numeric value indicating the number of bootstrap resamples.
 #'
-#' @return A list containing validated and prepared inputs: 
+#' @return A list containing validated and prepared inputs:
 #'   `normalizedDataList`, `groupData`, `rawData`, `refGroup`, `altGroup`,
 #'    `returnDetails`, `nBoot`, and `singleGroup`.
 #'
@@ -40,38 +39,38 @@ validateNormScoreInput <- function(
     nBoot = NULL,
     fromMainFunction = TRUE
 ) {
-  groupInfo <- .validateGroupData(groupData, refGroup, altGroup)
-  
-  rawData <- .validateRawData(rawData)
-  
-  normalizedDataList <- .coerceNormalizedData(normalizedDataList)
-  
-  .validateDimnames(normalizedDataList, rawData, groupInfo$groupData)
-  
-  normalizedDataList <- .alignNormalizedData(normalizedDataList, rawData)
-  
-  normalizedDataList <- addLogIfMissing(
-    normalizedDataList = normalizedDataList,
-    rawData = rawData)
-  
-  mainArgs <- .validateMainArguments(
-    returnDetails,
-    nBoot,
-    fromMainFunction)
-  
-  list(
-    normalizedDataList = normalizedDataList,
-    groupData = groupInfo$groupData,
-    rawData = rawData,
-    refGroup = groupInfo$refGroup,
-    altGroup = groupInfo$altGroup,
-    returnDetails = mainArgs$returnDetails,
-    nBoot = mainArgs$nBoot,
-    singleGroup = groupInfo$singleGroup
-  )
+    groupInfo <- .validateGroupData(groupData, refGroup, altGroup)
+
+    rawData <- .validateRawData(rawData)
+
+    normalizedDataList <- .coerceNormalizedData(normalizedDataList)
+
+    .validateDimnames(normalizedDataList, rawData, groupInfo$groupData)
+
+    normalizedDataList <- .alignNormalizedData(normalizedDataList, rawData)
+
+    normalizedDataList <- addLogIfMissing(
+        normalizedDataList = normalizedDataList,
+        rawData = rawData
+    )
+
+    mainArgs <- .validateMainArguments(
+        returnDetails,
+        nBoot,
+        fromMainFunction
+    )
+
+    list(
+        normalizedDataList = normalizedDataList,
+        groupData = groupInfo$groupData,
+        rawData = rawData,
+        refGroup = groupInfo$refGroup,
+        altGroup = groupInfo$altGroup,
+        returnDetails = mainArgs$returnDetails,
+        nBoot = mainArgs$nBoot,
+        singleGroup = groupInfo$singleGroup
+    )
 }
-
-
 
 
 #' Compute normScore item scores
@@ -84,13 +83,13 @@ validateNormScoreInput <- function(
 #'
 #' @param normalizedDataList A named list of normalized data matrices, with
 #'   proteins in rows and samples in columns.
-#' @param groupData A data frame containing sample-group annotation, with 
+#' @param groupData A data frame containing sample-group annotation, with
 #'   sample names in the first column and group labels in the second column.
 #' @param rawData A matrix or data frame containing raw intensity values. Used
 #'   for consistency with the main workflow.
 #' @param refGroup Character string indicating the reference group used for the
 #'   MA-plot item.
-#' @param altGroup Character string indicating the alternative group used for 
+#' @param altGroup Character string indicating the alternative group used for
 #'   the MA-plot item.
 #' @param singleGroup Logical value indicating whether the input data contain a
 #'   single group.
@@ -101,59 +100,53 @@ validateNormScoreInput <- function(
 #' @keywords internal
 #' @noRd
 
-computeNormScoreItems <- function(normalizedDataList, groupData, rawData, 
-                                  refGroup, altGroup, singleGroup){
-  #----- ITEM 1 - PCV
-  dfPCV <- do.call(rbind, lapply(normalizedDataList, getPCV, 
-                                 groups = levels(as.factor(groupData$Groups)),
-                                 groupData = groupData))
-  item1 <- apply(dfPCV, 1, mean, na.rm = TRUE)
-  
-  #----- ITEM 2 - Correlation (Spearman)
-  item2 <- computeCorrelation(normalizedDataList = normalizedDataList,
-                              groupData = groupData, method ="spearman") 
-  
-  #----- ITEM 3 - MA plot regression line vs expected 0
-  if (!singleGroup){
-    item3 <- vapply(normalizedDataList, maDiffArea,
-      samplesG1 =  groupData[groupData$Groups == refGroup, "Samples"],
-      samplesG2 = groupData[groupData$Groups == altGroup, "Samples"], 
-      numeric(1))
-  } else {
-    item3 <- stats::setNames(rep(NA, length(normalizedDataList)), 
-                             names(normalizedDataList))
-  }
-  
-  #----- ITEM 4 - Mean-SD regression line slope deviation
-  item4 <- vapply(normalizedDataList, meanSDdiffArea, numeric(1))
-  
-  #----- ITEM 5 - RLE: MAPE of sample medians (reference = 1)
-  item5 <- vapply(normalizedDataList, rleMAPE, numeric(1))
-  
-  #----- ITEM 6 - Total intensity consistency
-  item6 <- vapply(normalizedDataList, tiMAPE, numeric(1))
-  
-  #---- Score matrix
-  refNames <- names(item1)
-  scoreDF <- cbind(Item1 = item1[refNames], Item2 = item2[refNames],
-                   Item3 = item3[refNames], Item4 = item4[refNames],
-                   Item5 = item5[refNames], Item6 = item6[refNames])
-  scoreDF <- as.data.frame(scoreDF)
-  rownames(scoreDF) <- refNames
-  
-  # Selecting only items from scaled matrix
-  if (singleGroup){
-    itemsToSelect <- paste0("Item", c(seq_len(2), seq(4, 6)))
-  } else {
-    itemsToSelect <- paste0("Item", seq_len(6))
-  }
-  scoreDF <- scoreDF[, itemsToSelect]
-  
-  return(scoreDF)
+computeNormScoreItems <- function(normalizedDataList, groupData, rawData,
+            refGroup, altGroup, singleGroup) {
+    #----- ITEM 1 - PCV
+    dfPCV <- do.call(rbind, lapply(normalizedDataList, getPCV,
+        groups = levels(as.factor(groupData$Groups)),
+        groupData = groupData))
+    item1 <- apply(dfPCV, 1, mean, na.rm = TRUE)
+    #----- ITEM 2 - Correlation (Spearman)
+    item2 <- computeCorrelation(
+        normalizedDataList = normalizedDataList,
+        groupData = groupData, method = "spearman")
+    #----- ITEM 3 - MA plot regression line vs expected 0
+    if (!singleGroup) {
+        item3 <- vapply(normalizedDataList, maDiffArea,
+        samplesG1 = groupData[groupData$Groups == refGroup, "Samples"],
+        samplesG2 = groupData[groupData$Groups == altGroup, "Samples"],
+        numeric(1))
+    } else {
+        item3 <- stats::setNames(
+            rep(NA, length(normalizedDataList)),
+            names(normalizedDataList))
+    }
+    #----- ITEM 4 - Mean-SD regression line slope deviation
+    item4 <- vapply(normalizedDataList, meanSDdiffArea, numeric(1))
+    #----- ITEM 5 - RLE: MAPE of sample medians (reference = 1)
+    item5 <- vapply(normalizedDataList, rleMAPE, numeric(1))
+    #----- ITEM 6 - Total intensity consistency
+    item6 <- vapply(normalizedDataList, tiMAPE, numeric(1))
+
+    #---- Score matrix
+    refNames <- names(item1)
+    scoreDF <- cbind(
+        Item1 = item1[refNames], Item2 = item2[refNames],
+        Item3 = item3[refNames], Item4 = item4[refNames],
+        Item5 = item5[refNames], Item6 = item6[refNames])
+    scoreDF <- as.data.frame(scoreDF)
+    rownames(scoreDF) <- refNames
+
+    # Selecting only items from scaled matrix
+    if (singleGroup) {
+        itemsToSelect <- paste0("Item", c(seq_len(2), seq(4, 6)))
+    } else {
+        itemsToSelect <- paste0("Item", seq_len(6))
+    }
+    scoreDF <- scoreDF[, itemsToSelect]
+    return(scoreDF)
 }
-
-
-
 
 
 #' Scale normScore item scores
@@ -165,7 +158,7 @@ computeNormScoreItems <- function(normalizedDataList, groupData, rawData,
 #' @param scoreDF A data frame containing raw normScore item values, with
 #'   normalization methods in rows and items in columns.
 #'
-#' @return A data frame with the same dimensions as `scoreDF`, containing 
+#' @return A data frame with the same dimensions as `scoreDF`, containing
 #'  scaled item scores. Row names are preserved.
 #'
 #' @keywords internal
@@ -173,35 +166,29 @@ computeNormScoreItems <- function(normalizedDataList, groupData, rawData,
 
 scaleNormScoreItems <- function(
     scoreDF
-){
-  #----- Min-max scaling
-  scaledScoreDF <- apply(scoreDF, 2, function(columnValues) {
-    columnMin <- min(columnValues, na.rm = TRUE)
-    columnMax <- max(columnValues, na.rm = TRUE)
-    
-    if (columnMax == columnMin) {
-      return(rep(0, length(columnValues)))
+) {
+    #----- Min-max scaling
+    scaledScoreDF <- apply(scoreDF, 2, function(columnValues) {
+        columnMin <- min(columnValues, na.rm = TRUE)
+        columnMax <- max(columnValues, na.rm = TRUE)
+
+        if (columnMax == columnMin) {
+            return(rep(0, length(columnValues)))
+        }
+
+        (columnValues - columnMin) / (columnMax - columnMin)
+    })
+    scaledScoreDF <- as.data.frame(scaledScoreDF)
+    rownames(scaledScoreDF) <- rownames(scoreDF)
+
+    #---- Correcting item 2
+    if ("Item2" %in% colnames(scaledScoreDF)) {
+        scaledScoreDF$Item2 <- scaledScoreDF$Item2 * 0.1
     }
-    
-    (columnValues - columnMin) / (columnMax - columnMin)
-  })
-  scaledScoreDF <- as.data.frame(scaledScoreDF)
-  rownames(scaledScoreDF) <- rownames(scoreDF)
-  
-  #---- Correcting item 2
-  if ("Item2" %in% colnames(scaledScoreDF)) {
-    scaledScoreDF$Item2 <- scaledScoreDF$Item2 * 0.1
-  }
-  
-  #---- Return
-  scaledScoreDF
+
+    #---- Return
+    scaledScoreDF
 }
-
-
-
-
-
-
 
 
 #' Rank normalization methods from scaled normScore items
@@ -225,24 +212,18 @@ scaleNormScoreItems <- function(
 rankNormScoreItems <- function(
     scaledScoreDF,
     item0
-){
-  #----- Final ranking 
-  scaledScoreDF$Total <- rowSums(scaledScoreDF, na.rm = TRUE)
-  scaledScoreDF$TotalxItem0 <- scaledScoreDF$Total
-  
-  scaledScoreDF[rownames(scaledScoreDF) == "Log", "TotalxItem0"] <-
-    scaledScoreDF[rownames(scaledScoreDF) == "Log", "TotalxItem0"] * item0
-  
-  rankedScoreDF <- scaledScoreDF[order(scaledScoreDF$TotalxItem0), ]
-  
-  rankedScoreDF
+) {
+    #----- Final ranking
+    scaledScoreDF$Total <- rowSums(scaledScoreDF, na.rm = TRUE)
+    scaledScoreDF$TotalxItem0 <- scaledScoreDF$Total
+
+    scaledScoreDF[rownames(scaledScoreDF) == "Log", "TotalxItem0"] <-
+        scaledScoreDF[rownames(scaledScoreDF) == "Log", "TotalxItem0"] * item0
+
+    rankedScoreDF <- scaledScoreDF[order(scaledScoreDF$TotalxItem0), ]
+
+    rankedScoreDF
 }
-
-
-
-
-
-
 
 
 #' Bootstrap Estimation of Normalization Scores
@@ -251,10 +232,10 @@ rankNormScoreItems <- function(
 #' Computes bootstrap-based mean scores and percentile confidence intervals
 #' for normalization methods from a matrix of item-wise scores.
 #'
-#' The function applies bootstrap resampling over rows of the input score 
-#' matrix, where each row typically represents a scoring component (item) 
-#' and each column represents a normalization method. For each resample, 
-#' total scores per normalization are computed using 
+#' The function applies bootstrap resampling over rows of the input score
+#' matrix, where each row typically represents a scoring component (item)
+#' and each column represents a normalization method. For each resample,
+#' total scores per normalization are computed using
 #' \code{\link{bootstrapRowScores}}.
 #'
 #' @param rankedScoreDF `numeric` matrix where rows correspond to scoring items
@@ -269,42 +250,48 @@ rankNormScoreItems <- function(
 #' @keywords internal
 #' @noRd
 
-computeBootstrapNormScore <- function(rankedScoreDF, nBoot, item0){
-  # Chaging format
-  scoreMatrix <- t(rankedScoreDF)
-  
-  # Correcting Log values directly into items
-  if ("Log" %in% colnames(scoreMatrix)) {
-    scoreMatrix[, "Log"] <- scoreMatrix[, "Log"] * item0
-  }
-  
-  # performing booting
-  bootResults <- boot::boot(
-    data = scoreMatrix,
-    statistic = bootstrapRowScores,
-    R = nBoot)
-  bootstrapMeans <- colMeans(bootResults$t)
-  
-  bootstrapScores <- as.data.frame(
-    t(vapply(seq_len(ncol(scoreMatrix)), function(i) {
-        ci <- boot::boot.ci(bootResults, type = "perc", index = i)
-        c(colnames(scoreMatrix)[i],
-          bootstrapMeans[i],
-          ci$percent[4],
-          ci$percent[5])},
-        character(4))))
-  
-  colnames(bootstrapScores) <- c("normalization", "meanNormScore", 
-                                 "ll95", "ul95")
-  bootstrapScores[-1] <- lapply(bootstrapScores[-1], as.numeric)
-  bootstrapScores <- bootstrapScores[order(bootstrapScores$meanNormScore), ]
-  
-  return(bootstrapScores)
+computeBootstrapNormScore <- function(rankedScoreDF, nBoot, item0) {
+    # Chaging format
+    scoreMatrix <- t(rankedScoreDF)
+
+    # Correcting Log values directly into items
+    if ("Log" %in% colnames(scoreMatrix)) {
+        scoreMatrix[, "Log"] <- scoreMatrix[, "Log"] * item0
+    }
+
+    # performing booting
+    bootResults <- boot::boot(
+        data = scoreMatrix,
+        statistic = bootstrapRowScores,
+        R = nBoot
+    )
+    bootstrapMeans <- colMeans(bootResults$t)
+
+    bootstrapScores <- as.data.frame(
+        t(vapply(
+            seq_len(ncol(scoreMatrix)), function(i) {
+                ci <- boot::boot.ci(bootResults, type = "perc", index = i)
+                c(
+                    colnames(scoreMatrix)[i],
+                    bootstrapMeans[i],
+                    ci$percent[4],
+                    ci$percent[5]
+                )
+            },
+            character(4)
+        ))
+    )
+
+    colnames(bootstrapScores) <- c(
+        "normalization", "meanNormScore",
+        "ll95", "ul95"
+    )
+    bootstrapScores[-1] <- lapply(bootstrapScores[-1], as.numeric)
+    bootstrapScores <- bootstrapScores[order(bootstrapScores$meanNormScore), ]
+
+    return(bootstrapScores)
 }
 
 
 #' @importFrom rlang .data
 NULL
-
-
-
