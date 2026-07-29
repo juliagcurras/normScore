@@ -199,9 +199,7 @@ find_bad_indents <- function(path) {
     do.call(rbind, out)
 }
 badR <- find_bad_indents("R")
-badR
 badMan <- find_bad_indents("man")
-badMan
 ```
 
 
