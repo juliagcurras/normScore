@@ -67,7 +67,7 @@ plotItem0 <- function(
 #' @keywords internal
 #' @noRd
 
-plotForest  <- function(dfForest){
+plotItem1Forest  <- function(dfForest, groups){
     ggplot2::ggplot(dfForest, ggplot2::aes(
         x = .data$Normalization,
         y = .data$Mean, colour = .data$Group, shape = .data$Group
@@ -104,7 +104,7 @@ plotForest  <- function(dfForest){
 #' @keywords internal
 #' @noRd
 
-plotBoxplot <- function(dfForest){
+plotItem1Boxplot <- function(dfForest, groups){
     ggplot2::ggplot(dfForest, ggplot2::aes(
         x = .data$Normalization, y = .data$Mean
     )) +
@@ -170,9 +170,9 @@ plotItem1 <- function(normalizedDataList, groupData) {
     # plot!
     dfForest$Normalization <- factor(dfForest$Normalization, levels = normNames)
     if (length(groups) < 5) {
-        plotForest(dfForest = dfForest)
+        plotItem1Forest(dfForest = dfForest, groups = groups)
     } else if (length(groups) >= 5) {
-        plotBoxplot(dfForest = dfForest)
+        plotItem1Boxplot(dfForest = dfForest, groups = groups)
     }
 }
 
