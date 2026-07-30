@@ -13,9 +13,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Check the following repository to a deepen view into the normScore structure: [normScore-development](https://github.com/juliagcurras/normScore-development).
 
-Click the following link to access the *pkgdown* web page of the package: .
+Click the [following link](https://juliagcurras.github.io/normScore/) to access the *pkgdown* web page of the package.
 
-Do not like coding? Do not worry, you can use the *normScore* shiny app: . 
+Do not you like coding? Do not worry, you can use the [normScore shiny app](https://jgcurras.shinyapps.io/normScore/). 
 
 ## Background
 
