@@ -76,15 +76,14 @@ listData <- list(
 
 Once you gathered all input data, *normScore* is ready to be executed!
 
-```{r echo = TRUE}
+```{r echo = TRUE, eval = FALSE}
 # Compare normalization methods with normScore
 normScore(
     normalizedDataList = listData,
     groupData = simData$metadata,
     rawData = simData$rawData,
     refGroup = NULL, # if non-stated, a random group will be picked as reference
-    altGroup = NULL, # if non-stated, a random group will be picked as alternative
-    onlyFinalRanking = TRUE
+    altGroup = NULL # if non-stated, a random group will be picked as alternative
 )
 ```
 
