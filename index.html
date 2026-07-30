@@ -61,8 +61,8 @@
 <h2 id="relevant-links">Relevant links<a class="anchor" aria-label="anchor" href="#relevant-links"></a>
 </h2>
 <p>Check the following repository to a deepen view into the normScore structure: <a href="https://github.com/juliagcurras/normScore-development" class="external-link">normScore-development</a>.</p>
-<p>Click the following link to access the <em>pkgdown</em> web page of the package: .</p>
-<p>Do not like coding? Do not worry, you can use the <em>normScore</em> shiny app: .</p>
+<p>Click the <a href="https://juliagcurras.github.io/normScore/">following link</a> to access the <em>pkgdown</em> web page of the package.</p>
+<p>Do not you like coding? Do not worry, you can use the <a href="https://jgcurras.shinyapps.io/normScore/" class="external-link">normScore shiny app</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="background">Background<a class="anchor" aria-label="anchor" href="#background"></a>
@@ -99,30 +99,26 @@
 <span></span>
 <span><span class="co"># Simulate example data</span></span>
 <span><span class="va">simData</span> <span class="op">&lt;-</span> <span class="fu">normScore</span><span class="fu">::</span><span class="fu"><a href="reference/simulateData.html">simulateData</a></span><span class="op">(</span></span>
-<span>  nProteins <span class="op">=</span> <span class="fl">100</span>, </span>
-<span>  seed <span class="op">=</span> <span class="fl">9396</span></span>
+<span>    nProteins <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>    seed <span class="op">=</span> <span class="fl">9396</span></span>
 <span><span class="op">)</span> <span class="co"># List with 3 elements: raw data matrix | Log-transformed matrix | Metadata</span></span>
 <span></span>
 <span><span class="co"># Create a list with all normalizations</span></span>
 <span><span class="va">listData</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  Log <span class="op">=</span> <span class="va">simData</span><span class="op">$</span><span class="va">logData</span>, </span>
-<span>  Method1 <span class="op">=</span> <span class="va">simData</span><span class="op">$</span><span class="va">logData</span><span class="op">+</span><span class="fl">0.1</span>, </span>
-<span>  Method2 <span class="op">=</span> <span class="va">simData</span><span class="op">$</span><span class="va">logData</span><span class="op">+</span><span class="fl">0.5</span></span>
+<span>    Log <span class="op">=</span> <span class="va">simData</span><span class="op">$</span><span class="va">logData</span>,</span>
+<span>    Method1 <span class="op">=</span> <span class="va">simData</span><span class="op">$</span><span class="va">logData</span> <span class="op">+</span> <span class="fl">0.1</span>,</span>
+<span>    Method2 <span class="op">=</span> <span class="va">simData</span><span class="op">$</span><span class="va">logData</span> <span class="op">+</span> <span class="fl">0.5</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Once you gathered all input data, <em>normScore</em> is ready to be executed!</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Compare normalization methods with normScore</span></span>
 <span><span class="fu"><a href="reference/normScore.html">normScore</a></span><span class="op">(</span></span>
-<span>  normalizedDataList <span class="op">=</span> <span class="va">listData</span>,</span>
-<span>  groupData <span class="op">=</span> <span class="va">simData</span><span class="op">$</span><span class="va">metadata</span>,</span>
-<span>  rawData <span class="op">=</span> <span class="va">simData</span><span class="op">$</span><span class="va">rawData</span>,</span>
-<span>  refGroup <span class="op">=</span> <span class="cn">NULL</span>, <span class="co"># if non-stated, a random group will be picked as reference</span></span>
-<span>  altGroup <span class="op">=</span> <span class="cn">NULL</span>, <span class="co"># if non-stated, a random group will be picked as alternative</span></span>
-<span>  onlyFinalRanking <span class="op">=</span> <span class="cn">TRUE</span> </span>
+<span>    normalizedDataList <span class="op">=</span> <span class="va">listData</span>,</span>
+<span>    groupData <span class="op">=</span> <span class="va">simData</span><span class="op">$</span><span class="va">metadata</span>,</span>
+<span>    rawData <span class="op">=</span> <span class="va">simData</span><span class="op">$</span><span class="va">rawData</span>,</span>
+<span>    refGroup <span class="op">=</span> <span class="cn">NULL</span>, <span class="co"># if non-stated, a random group will be picked as reference</span></span>
+<span>    altGroup <span class="op">=</span> <span class="cn">NULL</span> <span class="co"># if non-stated, a random group will be picked as alternative</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb4"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="do">## $finalRanking</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="do">##       Log   Method2   Method1 </span></span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="do">## 0.1370587 0.3888889 2.5910809</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

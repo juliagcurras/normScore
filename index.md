@@ -10,11 +10,11 @@ Check the following repository to a deepen view into the normScore
 structure:
 [normScore-development](https://github.com/juliagcurras/normScore-development).
 
-Click the following link to access the *pkgdown* web page of the
-package: .
+Click the [following link](https://juliagcurras.github.io/normScore/) to
+access the *pkgdown* web page of the package.
 
-Do not like coding? Do not worry, you can use the *normScore* shiny app:
-.
+Do not you like coding? Do not worry, you can use the [normScore shiny
+app](https://jgcurras.shinyapps.io/normScore/).
 
 ## Background
 
@@ -90,15 +90,15 @@ library(normScore)
 
 # Simulate example data
 simData <- normScore::simulateData(
-  nProteins = 100, 
-  seed = 9396
+    nProteins = 100,
+    seed = 9396
 ) # List with 3 elements: raw data matrix | Log-transformed matrix | Metadata
 
 # Create a list with all normalizations
 listData <- list(
-  Log = simData$logData, 
-  Method1 = simData$logData+0.1, 
-  Method2 = simData$logData+0.5
+    Log = simData$logData,
+    Method1 = simData$logData + 0.1,
+    Method2 = simData$logData + 0.5
 )
 ```
 
@@ -108,17 +108,10 @@ Once you gathered all input data, *normScore* is ready to be executed!
 
 # Compare normalization methods with normScore
 normScore(
-  normalizedDataList = listData,
-  groupData = simData$metadata,
-  rawData = simData$rawData,
-  refGroup = NULL, # if non-stated, a random group will be picked as reference
-  altGroup = NULL, # if non-stated, a random group will be picked as alternative
-  onlyFinalRanking = TRUE 
+    normalizedDataList = listData,
+    groupData = simData$metadata,
+    rawData = simData$rawData,
+    refGroup = NULL, # if non-stated, a random group will be picked as reference
+    altGroup = NULL # if non-stated, a random group will be picked as alternative
 )
-```
-
-``` R
-## $finalRanking
-##       Log   Method2   Method1 
-## 0.1370587 0.3888889 2.5910809
 ```
