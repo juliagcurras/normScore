@@ -192,7 +192,7 @@ score for each normalization method.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result</span><span class="op">$</span><span class="va">finalRanking</span></span>
 <span><span class="co">#&gt;    Quantile CyclicLoess      Median         Log </span></span>
-<span><span class="co">#&gt;   0.2166984   1.3760648   2.7910586   5.9883198</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.3472501   0.4976523   3.3361530   5.6062588</span></span></code></pre></div>
 <p>Lower values indicate better normalization performance according to
 the scoring framework implemented in the package.</p>
 </div>
@@ -203,16 +203,16 @@ the scoring framework implemented in the package.</p>
 scores used to build the final ranking.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result</span><span class="op">$</span><span class="va">detailRanking</span></span>
-<span><span class="co">#&gt;                 Item1 Item2     Item3     Item4     Item5     Item6     Total</span></span>
-<span><span class="co">#&gt; Quantile    0.0000000   0.0 0.0000000 0.0000000 0.2166984 0.0000000 0.2166984</span></span>
-<span><span class="co">#&gt; CyclicLoess 0.1531998   0.1 0.2041703 0.1741166 0.6298636 0.1147144 1.3760648</span></span>
-<span><span class="co">#&gt; Median      0.9602883   0.0 0.9576886 0.1415680 0.0000000 0.7315137 2.7910586</span></span>
-<span><span class="co">#&gt; Log         1.0000000   0.0 1.0000000 1.0000000 1.0000000 1.0000000 5.0000000</span></span>
+<span><span class="co">#&gt;                  Item1 Item2      Item3     Item4     Item5     Item6     Total</span></span>
+<span><span class="co">#&gt; Quantile    0.09933769   0.0 0.00000000 0.0000000 0.2479124 0.0000000 0.3472501</span></span>
+<span><span class="co">#&gt; CyclicLoess 0.00000000   0.1 0.08737989 0.1708294 0.0000000 0.1394430 0.4976523</span></span>
+<span><span class="co">#&gt; Median      0.94601993   0.0 0.95378106 0.3503664 0.3663703 0.7196153 3.3361530</span></span>
+<span><span class="co">#&gt; Log         1.00000000   0.0 1.00000000 1.0000000 1.0000000 1.0000000 5.0000000</span></span>
 <span><span class="co">#&gt;             TotalxItem0</span></span>
-<span><span class="co">#&gt; Quantile      0.2166984</span></span>
-<span><span class="co">#&gt; CyclicLoess   1.3760648</span></span>
-<span><span class="co">#&gt; Median        2.7910586</span></span>
-<span><span class="co">#&gt; Log           5.9883198</span></span></code></pre></div>
+<span><span class="co">#&gt; Quantile      0.3472501</span></span>
+<span><span class="co">#&gt; CyclicLoess   0.4976523</span></span>
+<span><span class="co">#&gt; Median        3.3361530</span></span>
+<span><span class="co">#&gt; Log           5.6062588</span></span></code></pre></div>
 <p>The six item scores correspond to:</p>
 <ol style="list-style-type: decimal">
 <li>pooled coefficient of variation</li>
@@ -232,10 +232,10 @@ bootstrap-based summary scores and confidence intervals.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result</span><span class="op">$</span><span class="va">bootstrapScore</span></span>
 <span><span class="co">#&gt;   normalization meanNormScore      ll95      ul95</span></span>
-<span><span class="co">#&gt; 1      Quantile     0.6197575 0.1722891  1.083492</span></span>
-<span><span class="co">#&gt; 2   CyclicLoess     3.9641881 1.4912559  7.091613</span></span>
-<span><span class="co">#&gt; 3        Median     8.0256886 3.2255385 14.299405</span></span>
-<span><span class="co">#&gt; 4           Log    18.3192798 7.1859837 33.975258</span></span></code></pre></div>
+<span><span class="co">#&gt; 1      Quantile      1.001082 0.2980131  1.845679</span></span>
+<span><span class="co">#&gt; 2   CyclicLoess      1.442139 0.5182585  2.531123</span></span>
+<span><span class="co">#&gt; 3        Median      9.593603 4.1514350 16.738587</span></span>
+<span><span class="co">#&gt; 4           Log     16.753519 6.7275106 30.269639</span></span></code></pre></div>
 <p>This output contains:</p>
 <ul>
 <li>the normalization method name</li>

@@ -138,7 +138,7 @@ normalization method.
 
 result$finalRanking
 #>    Quantile CyclicLoess      Median         Log 
-#>   0.2166984   1.3760648   2.7910586   5.9883198
+#>   0.3472501   0.4976523   3.3361530   5.6062588
 ```
 
 Lower values indicate better normalization performance according to the
@@ -152,16 +152,16 @@ build the final ranking.
 ``` r
 
 result$detailRanking
-#>                 Item1 Item2     Item3     Item4     Item5     Item6     Total
-#> Quantile    0.0000000   0.0 0.0000000 0.0000000 0.2166984 0.0000000 0.2166984
-#> CyclicLoess 0.1531998   0.1 0.2041703 0.1741166 0.6298636 0.1147144 1.3760648
-#> Median      0.9602883   0.0 0.9576886 0.1415680 0.0000000 0.7315137 2.7910586
-#> Log         1.0000000   0.0 1.0000000 1.0000000 1.0000000 1.0000000 5.0000000
+#>                  Item1 Item2      Item3     Item4     Item5     Item6     Total
+#> Quantile    0.09933769   0.0 0.00000000 0.0000000 0.2479124 0.0000000 0.3472501
+#> CyclicLoess 0.00000000   0.1 0.08737989 0.1708294 0.0000000 0.1394430 0.4976523
+#> Median      0.94601993   0.0 0.95378106 0.3503664 0.3663703 0.7196153 3.3361530
+#> Log         1.00000000   0.0 1.00000000 1.0000000 1.0000000 1.0000000 5.0000000
 #>             TotalxItem0
-#> Quantile      0.2166984
-#> CyclicLoess   1.3760648
-#> Median        2.7910586
-#> Log           5.9883198
+#> Quantile      0.3472501
+#> CyclicLoess   0.4976523
+#> Median        3.3361530
+#> Log           5.6062588
 ```
 
 The six item scores correspond to:
@@ -184,10 +184,10 @@ summary scores and confidence intervals.
 
 result$bootstrapScore
 #>   normalization meanNormScore      ll95      ul95
-#> 1      Quantile     0.6197575 0.1722891  1.083492
-#> 2   CyclicLoess     3.9641881 1.4912559  7.091613
-#> 3        Median     8.0256886 3.2255385 14.299405
-#> 4           Log    18.3192798 7.1859837 33.975258
+#> 1      Quantile      1.001082 0.2980131  1.845679
+#> 2   CyclicLoess      1.442139 0.5182585  2.531123
+#> 3        Median      9.593603 4.1514350 16.738587
+#> 4           Log     16.753519 6.7275106 30.269639
 ```
 
 This output contains:
